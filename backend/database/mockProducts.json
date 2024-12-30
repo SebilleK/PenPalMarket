@@ -1,0 +1,26 @@
+[
+	{
+		"id": "1",
+		"name": "Pen",
+		"description": "A simple ballpoint pen",
+		"price": 4.99,
+		"category": "Basic",
+		"stock": 100
+	},
+	{
+		"id": "2",
+		"name": "Classic Pen",
+		"description": "A classic pen, fit for all needs",
+		"price": 7.99,
+		"category": "Classic",
+		"stock": 50
+	},
+	{
+		"id": "3",
+		"name": "Premium Pen",
+		"description": "A luxurious pen: the best gift for any occasion",
+		"price": 19.99,
+		"category": "Classic",
+		"stock": 30
+	}
+]
