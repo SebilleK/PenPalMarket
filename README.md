@@ -33,21 +33,24 @@ npm run start
 ### Folder Organization
 
 **backend**
+
+```bash
 backend/
 ├── database/ # a starter schema (wip) and mock data for the api as needed
 ├── src/
 │ ├── routes/ # route handlers (api endpoints) according to types
-│ │ └── products.ts  
+│ │ └── products.ts
 │ │ └── ....
 │ ├── services/ # services as needed
 │ │ └── productService.ts
 │ │ └── ....
 │ ├── types/ # type definitions
-│ │ └── product.ts  
+│ │ └── product.ts
 │ │ └── ....
 │ └── index.ts # server setup and initialization
-├── package.json  
+├── package.json
 └── tsconfig.json
+```
 
 ### Database
 
