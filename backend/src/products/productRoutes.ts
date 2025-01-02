@@ -1,7 +1,7 @@
 // src/routes/products.ts
 import { FastifyInstance } from 'fastify';
-import { getAllProducts, getProductById } from '../services/productService';
-import { Product } from '../types/Product';
+import { getAllProducts, getProductById } from './productService';
+import { Product } from './ProductTypes';
 
 export default async function productRoutes(server: FastifyInstance) {
 	// GET all products

@@ -5,9 +5,9 @@
 
 ## Project Description
 
-**PenPal Market** is a full-stack eCommerce store designed to showcase a premium selection of pens as writing instruments. This project is a collaborative effort to build a complete online store experience, covering everything from ideation and UI/UX design to backend and frontend development. The store offers a carefully curated range of pens, catering to both practical users and luxury collectors.
+**PenPal Market** is a _full-stack eCommerce store_ designed to showcase a premium selection of pens as writing instruments. This project is a collaborative effort to build a **complete online store** experience, covering everything from _ideation and UI/UX design_ to _backend and frontend development_. The store offers a carefully curated range of pens, catering to both practical users and luxury collectors.
 
-To ensure simplicity and maintainability, we prioritize a minimalistic approach to dependencies, adhere to a Test-Driven Development (TDD) methodology, and maintain a well-organized project structure.
+In pursuit of simplicity and maintainability, we prioritize a **minimalistic approach to dependencies**, adhere to a **Test-Driven Development** (TDD) methodology, and maintain a well-organized project structure grouped by **feature domains** — "products", "users" etc:. (as opposed to grouping technical layers together — "routes", "services", etc:.).
 
 This document serves as a guide to all aspects of the project.
 
@@ -56,15 +56,12 @@ npm test
 backend/
 ├── database/ # a starter schema (wip) and mock data for the api as needed
 ├── src/
-│ ├── routes/ # route handlers (api endpoints) according to types
-│ │ └── products.ts
+│ ├── products # all products related functionality
+│ │ └── productRoutes.ts # route handler (api endpoints) according to type
+│ │ └── productService.ts # services as needed
+│ │ └── productTypes.ts # type definitions
 │ │ └── ....
-│ ├── services/ # services as needed
-│ │ └── productService.ts
-│ │ └── ....
-│ ├── types/ # type definitions
-│ │ └── product.ts
-│ │ └── ....
+│ ├── .... # feature domains as needed
 │ └── app.ts # configuring the fastify instance, registering routes
 │ └── index.ts # starting the server
 ├── tests # wip, all tests for the endpoints

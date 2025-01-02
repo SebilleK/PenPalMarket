@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 // routes
-import productRoutes from './routes/products';
+import productRoutes from './products/productRoutes';
 
 const server = Fastify({
 	logger: true,

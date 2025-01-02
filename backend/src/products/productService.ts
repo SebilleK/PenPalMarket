@@ -1,4 +1,4 @@
-import { Product } from '../types/Product';
+import { Product } from './ProductTypes';
 import mockProducts from '../../database/mockProducts.json';
 
 export const getAllProducts = async (): Promise<Product[]> => {
