@@ -1,25 +1,16 @@
-import Fastify from 'fastify';
-// routes
-import productRoutes from './routes/products';
-
-const server = Fastify({
-	logger: true,
-});
-
-// register routes
-server.register(productRoutes);
-
-server.get('/', () => {
-	return 'Hello from PenPal Market API!';
-});
+import server from './app'; 
 
 const start = async () => {
 	try {
 		await server.listen({ port: 3000, host: '127.0.0.1' });
+		console.log('Server listening at http://127.0.0.1:3000');
 	} catch (err) {
 		server.log.error(err);
 		process.exit(1);
 	}
 };
 
-start();
+// if environment is not test, start
+if (process.env.NODE_ENV !== 'test') {
+	start();
+}
