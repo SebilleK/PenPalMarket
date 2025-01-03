@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS `penpal_db`;
+USE `penpal_db`;
+
 CREATE TABLE `products` (
   `created_at` timestamp DEFAULT (now()),
   `product_id` integer UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
@@ -53,7 +56,7 @@ CREATE TABLE `shopping_cart_items` (
 );
 
 CREATE TABLE `orders` (
-  `created_at` timestamp DEFAULT 'now()',
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   `order_id` integer PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `user_id` integer NOT NULL,
   `cart_id` integer NOT NULL,
@@ -62,12 +65,12 @@ CREATE TABLE `orders` (
   `billing_address` integer NOT NULL,
   `order_status` varchar(50) DEFAULT 'pending',
   `payment_status` varchar(50) DEFAULT 'pending',
-  `paid_at` timestamp,
+  `paid_at` timestamp NULL,
   `payment_method` varchar(50)
 );
 
 CREATE TABLE `order_items` (
-  `created_at` timestamp DEFAULT 'now()',
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   `order_items_id` integer PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `order_id` integer NOT NULL,
   `product_id` integer NOT NULL,

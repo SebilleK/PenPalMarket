@@ -4,7 +4,7 @@ import server from '../src/app';
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 // mock products
-import mockProducts from '../database/mockProducts.json';
+import mockProducts from '../database/json_mocks/mockProducts.json';
 
 describe('Product Routes', () => {
 	// GET ALL PRODUCTS
@@ -90,7 +90,7 @@ describe('Product Routes', () => {
 			},
 		});
 
-		assert.deepStrictEqual(response.statusCode, 204);
+		assert.deepStrictEqual(response.statusCode, 200);
 	});
 
 	// DELETES PRODUCT

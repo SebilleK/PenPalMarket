@@ -3,7 +3,7 @@ import Fastify from 'fastify';
 import productRoutes from './products/productRoutes';
 
 const server = Fastify({
-	logger: true,
+	// logger: true,
 });
 
 // register routes
@@ -14,4 +14,3 @@ server.get('/', () => {
 });
 
 export default server;
-

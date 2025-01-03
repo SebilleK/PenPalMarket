@@ -17,11 +17,47 @@ WIP.
 
 ### Backend
 
-**Navigate to the backend dir**
+---
+
+#### Database Setup
+
+There needs to be a **database setup** for this project. You can set it up / manage it with whatever software as you prefer, but below are some steps. To follow them, make sure you have downloaded and installed [MySQL](https://dev.mysql.com/downloads/installer/).
+
+1. Open up a command line (as admin) and start MySQL Server
+
+```bash
+net start mysql
+# net stop mysql # >>> to stop services
+```
+
+2. Log in to MySQL as the root user (or another), add "use mysql;" if need be
+
+```bash
+mysql -u root -p # use mysql;
+```
+
+2.5. (OPTIONAL) Manage the connection with either [MySQL Workbench](https://dev.mysql.com/downloads/installer/), the [Database Client JDBC](https://marketplace.visualstudio.com/items?itemName=cweijan.dbclient-jdbc) VSC extension, or other sofware of choice. Make sure to establish the connection with the right credentials: check the .example-env file.
+
+**Defaults:**
+**user**: _root_
+**host:** _localhost_
+**port:** _3306_
+
+3. Create and Seed the database. Appropriate Queries are provided in database/utility.
+
+---
+
+#### API Setup
+
+On the project:
+
+1. Navigate to the backend dir
 
 ```bash
 cd backend
 ```
+
+2. Start the API
 
 **Run | dev** (no transpiling):
 
@@ -38,7 +74,7 @@ npm run start
 
 ## Tests
 
-We utilize Fastify's built-in testing method, inject(), along with Node's native assertion and testing modules, to validate our backend API. We intend to use a TDD approach where we write tests before the actual implementation.
+We utilize Fastify's built-in testing method, [inject()](https://fastify.dev/docs/v1.14.x/Documentation/Testing/) — which injects fake http requests, along with Node's native assertion and testing modules, to validate our backend API. We intend to use a TDD approach where we write tests before the actual implementation.
 
 To run tests:
 
@@ -46,7 +82,37 @@ To run tests:
 npm test
 ```
 
-## Structure
+## Database
+
+We're using a MySQL database and **MySQL2**, a modern and lightweight library, to interact with it.
+
+When using Typescript + CRUD operations with MySQL2, the query result includes a ResultSetHeader with query metadata you should use.
+
+Refer to the [official docs](https://sidorares.github.io/node-mysql2/docs/documentation/typescript-examples#resultsetheader) on ResultSetHeader.
+
+Example — createProduct function on productService.ts
+
+```bash
+export const createProduct = async (product: Product): Promise<Product> => {
+	# ...
+	try {
+		const [result] = await connection.promise().query<ResultSetHeader>(sql, [name, description, price, category, stock]);
+
+		# ...
+
+		return newProduct;
+	} catch (err) {
+		throw new Error(`Error creating product: ${err}`);
+	}
+};
+```
+
+#### Database Schema
+
+Database Schema designed with https://dbdiagram.io/. Subject to changes.
+![Database Schema](images/db_schema_first.png)
+
+## Project Structure
 
 ### Folder Organization
 
@@ -54,7 +120,7 @@ npm test
 
 ```bash
 backend/
-├── database/ # a starter schema (wip) and mock data for the api as needed
+├── database/ # mock data, useful sql queries, db connection
 ├── src/
 │ ├── products # all products related functionality
 │ │ └── productRoutes.ts # route handler (api endpoints) according to type
@@ -68,10 +134,3 @@ backend/
 ├── package.json
 └── tsconfig.json
 ```
-
-### Database
-
-#### Database Schema
-
-Database Schema designed with https://dbdiagram.io/. Subject to changes.
-![Database Schema](images/db_schema_first.png)
