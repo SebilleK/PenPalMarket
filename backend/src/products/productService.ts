@@ -32,7 +32,7 @@ export const getProductById = async (id: string): Promise<Product | null> => {
 
 // GET product by Name
 export const getProductByName = async (name: string): Promise<Product[] | undefined> => {
-	const sql = 'SELECT * FROM products WHERE name LIKE ?';
+	const sql = 'SELECT * FROM products WHERE product_name LIKE ?';
 
 	try {
 		const [rows] = await connection.promise().query(sql, [`%${name}%`]);
@@ -46,11 +46,24 @@ export const getProductByName = async (name: string): Promise<Product[] | undefi
 
 // POST (create) a product
 export const createProduct = async (product: Product): Promise<Product> => {
-	const { name, description, price, category, stock } = product;
-	const sql = 'INSERT INTO products (id, name, description, price, category, stock) VALUES (?, ?, ?, ?, ?, ?)';
+	const { name, description, price, category, stock, imagePath } = product;
+
+	const sql = `
+        INSERT INTO products 
+        (product_name, product_description, product_price, category_id, stock_quantity, product_image_path) 
+        VALUES (?, ?, ?, 
+            (SELECT category_id FROM categories WHERE name = ? LIMIT 1), ?, ?)
+    `;
 
 	try {
-		const [result] = await connection.promise().query<ResultSetHeader>(sql, [name, description, price, category, stock]);
+		const [result] = await connection.promise().query<ResultSetHeader>(sql, [
+			name,
+			description,
+			price,
+			category, // converted in id in sql
+			stock,
+			imagePath || null,
+		]);
 
 		const newProduct: Product = {
 			...product,
@@ -65,13 +78,24 @@ export const createProduct = async (product: Product): Promise<Product> => {
 
 // PUT (update) a product
 export const updateProduct = async (id: string, productToUpdate: Partial<Product>): Promise<Product | Partial<Product> | null> => {
-	const { name, description, price, category, stock } = productToUpdate;
-	const sql = 'UPDATE products SET name = ?, description = ?, price = ?, category = ?, stock = ? WHERE id = ?';
+	const { name, description, price, category, stock, imagePath } = productToUpdate;
+	const sql = `
+        UPDATE products 
+        SET 
+            product_name = ?, 
+            product_description = ?, 
+            product_price = ?, 
+            category_id = (SELECT category_id FROM categories WHERE name = ? LIMIT 1), 
+            stock_quantity = ?, 
+            product_image_path = ? 
+        WHERE product_id = ?
+    `;
 
 	try {
-		const [result] = await connection.promise().query<ResultSetHeader>(sql, [name, description, price, category, stock, id]);
+		const [result] = await connection.promise().query<ResultSetHeader>(sql, [name, description, price, category, stock, imagePath || null, id]);
+
 		if (result.affectedRows === 0) {
-			return null;
+			return null; // product wasn't found
 		}
 
 		// the returned product can be a partial one, depending on updated fields
@@ -90,7 +114,7 @@ export const updateProduct = async (id: string, productToUpdate: Partial<Product
 
 // DELETE a product
 export const deleteProduct = async (id: string): Promise<boolean> => {
-	const sql = 'DELETE FROM products WHERE id = ?';
+	const sql = 'DELETE FROM products WHERE product_id = ?';
 
 	try {
 		const [result] = await connection.promise().query<ResultSetHeader>(sql, [id]);

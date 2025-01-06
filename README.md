@@ -43,7 +43,11 @@ mysql -u root -p # use mysql;
 **host:** _localhost_
 **port:** _3306_
 
-3. Create and Seed the database. Appropriate Queries are provided in database/utility.
+3. Create and Seed the database. Appropriate Queries are provided in database/utility. You can do _both_ of these things by running **fresh_db.sql**, or step by step:
+
+   **3.1** Run **create_db.sql** to create the database
+
+   **3.2** Seed it with the provided data with **seed_db.sql**
 
 ---
 
@@ -76,10 +80,16 @@ npm run start
 
 We utilize Fastify's built-in testing method, [inject()](https://fastify.dev/docs/v1.14.x/Documentation/Testing/) — which injects fake http requests, along with Node's native assertion and testing modules, to validate our backend API. We intend to use a TDD approach where we write tests before the actual implementation.
 
+**Please make sure you have seeded the database with fresh data all tests to pass!**
+
+To drop the database, re-create it and seed with fresh data again use the query:
+database/utility/**clean_db.sql**
+(or do it manually)
+
 To run tests:
 
 ```bash
-npm test
+npm run test
 ```
 
 ## Database

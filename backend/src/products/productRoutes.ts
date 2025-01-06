@@ -30,10 +30,10 @@ export default async function productRoutes(server: FastifyInstance) {
 	});
 
 	// GET products by name
-	server.get('/products/name=:name', async (request, reply) => {
+	server.get('/products/search/:name', async (request, reply) => {
 		const { name } = request.params as { name: string };
 		try {
-			const products: Product[] | undefined = await getProductByName(name);
+			const products = await getProductByName(name);
 			if (products && products.length === 0) {
 				reply.status(404).send({ message: `No products found with the name "${name}"` });
 			} else {
