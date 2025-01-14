@@ -118,3 +118,69 @@ describe('Product Routes', () => {
 		});
 	});
 });
+
+describe('Users Routes', () => {
+	//? REGISTER USER
+	it('user can register', async () => {
+		// inject user stuff here correct
+		const response = await server.inject({ method: 'POST', path: '/users' });
+
+		assert.deepStrictEqual(response.statusCode, 201);
+	});
+
+	it('bad register attempt gives out 400', async () => {
+		// inject user stuff here NOT correct
+		const response = await server.inject({ method: 'POST', path: '/users' });
+
+		assert.deepStrictEqual(response.statusCode, 400);
+	});
+
+	//? LOGIN USER
+	it('user can login', async () => {
+		const response = await server.inject({ method: 'POST', path: '/users' });
+		assert.deepStrictEqual(response.statusCode, 201);
+
+		// verify jwt cookie exists
+		const cookies = response.cookies;
+
+		assert.ok(cookies, 'response gives cookies');
+		const jwtCookie = cookies.find(cookie => cookie.name === 'jwt');
+		assert.ok(jwtCookie, 'JWT cookie exists in the response');
+	});
+
+	it('user cant login with wrong password', async () => {
+		// BAD USER CREDENTIALS
+		const response = await server.inject({ method: 'POST', path: '/users' });
+
+		// unauthorized
+		assert.deepStrictEqual(response.statusCode, 401);
+	});
+
+	//? GET USER DETAILS
+	it('user can access own details', async () => {
+		const response = await server.inject({ method: 'GET', path: '/users' });
+
+		assert.deepStrictEqual(response.statusCode, 200);
+	});
+
+	//? PUT USER DETAILS
+
+	it('user can edit own details', async () => {
+		const response = await server.inject({ method: 'PUT', path: '/users' });
+
+		assert.deepStrictEqual(response.statusCode, 200);
+	});
+
+	it('user cant add incorrect details', async () => {
+		const response = await server.inject({ method: 'PUT', path: '/users' });
+
+		assert.deepStrictEqual(response.statusCode, 400);
+	});
+
+	//? DELETE USER
+	it('user can delete itself', async () => {
+		const response = await server.inject({ method: 'DELETE', path: '/users' });
+
+		assert.deepStrictEqual(response.statusCode, 200);
+	});
+});
