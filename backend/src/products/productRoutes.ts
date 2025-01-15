@@ -1,4 +1,3 @@
-// src/routes/products.ts
 import { FastifyInstance } from 'fastify';
 import { getAllProducts, getProductById, getProductByName, createProduct, updateProduct, deleteProduct } from './productService';
 import { Product } from './ProductTypes';
