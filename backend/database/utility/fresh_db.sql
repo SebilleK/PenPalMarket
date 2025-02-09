@@ -21,7 +21,7 @@ CREATE TABLE `categories` (
 
 CREATE TABLE `users` (
   `created_at` timestamp DEFAULT (now()),
-  `user_id` integer UNIQUE PRIMARY KEY NOT NULL,
+  `user_id` integer UNIQUE PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `first_name` varchar(50) NOT NULL,
   `last_name` varchar(50) NOT NULL,
   `role` varchar(20) NOT NULL,

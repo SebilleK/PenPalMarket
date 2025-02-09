@@ -1,17 +1,34 @@
 import { FastifyInstance } from 'fastify';
 // import services later
+import { userRegister, userLogin } from './userService';
 import { User } from './UserTypes';
 
 export default async function userRoutes(server: FastifyInstance) {
 	// REGISTER / POST user
 	server.post('/users', async (request, reply) => {
+		const user: User = request.body as User;
 		try {
-			const user: User = request.body as User;
-			// use the user info sent on request (user) on a service
-			// return what's above as the result (newUser)
-			// reply.status(201).send{newUser}
-		} catch (error) {
-			reply.status(500).send({ message: 'Error registering a new user' });
+			const newUser: User = await userRegister(user);
+			reply.status(201).send({ message: 'A new user was created', newUser });
+		} catch (error: unknown) {
+			const e = error as Error;
+			reply.status(500).send({
+				message: 'Error registering user',
+				error: e.message,
+			});
+		}
+	});
+
+	// LOGIN user
+	server.post('/login', async (request, reply) => {
+		const { email, password } = request.body as { email: string; password: string };
+
+		try {
+			const user = await userLogin(email, password);
+			reply.status(200).send({ message: 'Login successful' });
+		} catch (error: unknown) {
+			const e = error as Error;
+			reply.status(401).send({ message: 'Unauthorized, please check your credentials', error: e.message });
 		}
 	});
 }

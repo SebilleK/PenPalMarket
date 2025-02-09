@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 // routes
 import productRoutes from './products/productRoutes';
+import userRoutes from './users/userRoutes';
 
 const server = Fastify({
 	// logger: true,
@@ -8,6 +9,7 @@ const server = Fastify({
 
 // register routes
 server.register(productRoutes);
+server.register(userRoutes);
 
 server.get('/', () => {
 	return 'Hello from PenPal Market API!';
