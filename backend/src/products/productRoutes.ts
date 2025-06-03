@@ -18,7 +18,7 @@ export default async function productRoutes(server: FastifyInstance) {
 		const { id } = request.params as { id: string };
 		try {
 			const product: Product | null = await getProductById(id);
-			if (!product) {
+			if (product === null) {
 				reply.status(404).send({ message: 'Product not found in database' });
 			} else {
 				return product;

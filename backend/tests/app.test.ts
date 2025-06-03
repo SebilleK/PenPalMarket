@@ -82,7 +82,7 @@ describe('Product Routes', () => {
 
 			// storing the created product ID to update and delete the same product
 			const createdProduct = JSON.parse(response.body);
-			createdProductId = createdProduct.id;
+			createdProductId = createdProduct.product_id;
 		});
 
 		// UPDATE PRODUCT

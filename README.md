@@ -87,6 +87,7 @@ database/utility/**clean_db.sql**
 (or do it manually)
 
 To run tests:
+**make sure you are in the backend directory**
 
 ```bash
 npm run test

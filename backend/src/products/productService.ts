@@ -67,7 +67,7 @@ export const createProduct = async (product: Product): Promise<Product> => {
 
 		const newProduct: Product = {
 			...product,
-			id: result.insertId.toString(),
+			product_id: result.insertId.toString(),
 		};
 
 		return newProduct;
@@ -78,6 +78,7 @@ export const createProduct = async (product: Product): Promise<Product> => {
 
 // PUT (update) a product
 export const updateProduct = async (id: string, productToUpdate: Partial<Product>): Promise<Product | Partial<Product> | null> => {
+	const product_id = id;
 	const { name, description, price, category, stock, imagePath } = productToUpdate;
 	const sql = `
         UPDATE products 
@@ -99,7 +100,7 @@ export const updateProduct = async (id: string, productToUpdate: Partial<Product
 		}
 
 		// the returned product can be a partial one, depending on updated fields
-		const updatedProduct: Partial<Product> = { id };
+		const updatedProduct: Partial<Product> = { product_id };
 		if (name !== undefined) updatedProduct.name = name;
 		if (description !== undefined) updatedProduct.description = description;
 		if (price !== undefined) updatedProduct.price = price;
