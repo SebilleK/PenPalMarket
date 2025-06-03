@@ -62,8 +62,24 @@ export const userLogin = async (email: string, password: string): Promise<Omit<U
 	}
 };
 
-// GET a user
+// GET a user by a ID
+export const getUserById = async (id: string): Promise<User | null> => {
+	const sql = 'SELECT * FROM users WHERE user_id =?';
+
+	try {
+		const [rows] = await connection.promise().query(sql, [id]);
+		if (Array.isArray(rows) && rows.length > 0) {
+			return rows[0] as User;
+		} else {
+			return null;
+		}
+	} catch (err) {
+		throw new Error(`Error fetching product with ID ${id}: ${err}`);
+	}
+};
 
 // UPDATE (put) a user
+//! TBA
 
 // DELETE a user
+//!TBA
