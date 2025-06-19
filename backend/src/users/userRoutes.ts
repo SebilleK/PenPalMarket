@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 // import services later
 import { userRegister, userLogin } from './userService';
 import { User } from './UserTypes';
-import { BadRequestError } from '../../errors/customErrors';
+import { BadRequestError, UnauthorizedError } from '../../errors/customErrors';
 
 export default async function userRoutes(server: FastifyInstance) {
 	// REGISTER / POST user
@@ -16,16 +16,17 @@ export default async function userRoutes(server: FastifyInstance) {
 			//! ADD CUSTOMS AS NEEDED?
 
 			if (error instanceof BadRequestError) {
-				reply.status(400).send({
+				return reply.status(400).send({
 					message: 'Bad Request',
 					error: e.message,
 				});
-			} else {
-				reply.status(500).send({
-					message: 'Error registering user',
-					error: e.message,
-				});
 			}
+
+			// default
+			return reply.status(500).send({
+				message: 'Error registering user',
+				error: e.message,
+			});
 		}
 	});
 
@@ -38,7 +39,27 @@ export default async function userRoutes(server: FastifyInstance) {
 			reply.status(200).send({ message: 'Login successful' });
 		} catch (error: unknown) {
 			const e = error as Error;
-			reply.status(401).send({ message: 'Unauthorized, please check your credentials', error: e.message });
+			//! ADD CUSTOMS AS NEEDED?
+
+			if (error instanceof BadRequestError) {
+				return reply.status(400).send({
+					message: 'Bad Request',
+					error: e.message,
+				});
+			}
+
+			if (error instanceof UnauthorizedError) {
+				return reply.status(401).send({
+					message: 'Unauthorized',
+					error: e.message,
+				});
+			}
+
+			// default
+			return reply.status(500).send({
+				message: 'Error registering user',
+				error: e.message,
+			});
 		}
 	});
 }

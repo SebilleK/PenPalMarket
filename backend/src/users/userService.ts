@@ -2,7 +2,7 @@ import { User } from './UserTypes';
 import connection from '../../database/dbConnection';
 import { ResultSetHeader } from 'mysql2';
 import { hashPassword, verifyPassword } from '../../utils/hash';
-import { BadRequestError } from '../../errors/customErrors';
+import { BadRequestError, UnauthorizedError } from '../../errors/customErrors';
 
 // REGISTER (post) a user
 export const userRegister = async (user: User): Promise<User> => {
@@ -68,6 +68,10 @@ export const userRegister = async (user: User): Promise<User> => {
 
 // LOGIN a user
 export const userLogin = async (email: string, password: string): Promise<Omit<User, 'password'>> => {
+	if (!email || !password) {
+		throw new BadRequestError('All required fields must be provided.');
+	}
+
 	const sql = `SELECT * FROM users WHERE email = ? LIMIT 1`;
 
 	try {
@@ -81,7 +85,7 @@ export const userLogin = async (email: string, password: string): Promise<Omit<U
 
 		const isPasswordValid = await verifyPassword(password, user.password);
 		if (!isPasswordValid) {
-			throw new Error('Invalid credentials.');
+			throw new UnauthorizedError('Invalid credentials.');
 		}
 
 		const { password: _, ...userWithoutPassword } = user;
@@ -90,7 +94,13 @@ export const userLogin = async (email: string, password: string): Promise<Omit<U
 
 		return userWithoutPassword;
 	} catch (error) {
-		throw new Error(`Error while trying to login: ${error}`);
+		// known errors
+		if (error instanceof BadRequestError || error instanceof UnauthorizedError) {
+			throw error;
+		} else {
+			// unknown
+			throw new Error(`Error while trying to login: ${error}`);
+		}
 	}
 };
 

@@ -130,7 +130,7 @@ describe('Users Routes', () => {
 		assert.deepStrictEqual(response.statusCode, 201);
 	});
 
-	it('user cant register with same email', async () => {
+	it('user cant register with same info', async () => {
 		const response = await server.inject({ method: 'POST', path: '/users', body: mockUser });
 
 		assert.deepStrictEqual(response.statusCode, 400);
@@ -144,23 +144,30 @@ describe('Users Routes', () => {
 
 	//? LOGIN USER
 	it('user can login', async () => {
-		const response = await server.inject({ method: 'POST', path: '/users' });
-		assert.deepStrictEqual(response.statusCode, 201);
+		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'edelgard@blackeagles.com', password: '2206Edie#' } });
+		assert.deepStrictEqual(response.statusCode, 200);
 
-		// verify jwt cookie exists
-		const cookies = response.cookies;
+		//! verify jwt cookie exists - LATER
+		// const cookies = response.cookies;
 
-		assert.ok(cookies, 'response gives cookies');
-		const jwtCookie = cookies.find(cookie => cookie.name === 'jwt');
-		assert.ok(jwtCookie, 'JWT cookie exists in the response');
+		// assert.ok(cookies, 'response gives cookies');
+		// const jwtCookie = cookies.find(cookie => cookie.name === 'jwt');
+		// assert.ok(jwtCookie, 'JWT cookie exists in the response');
 	});
 
 	it('user cant login with wrong password', async () => {
 		// BAD USER CREDENTIALS
-		const response = await server.inject({ method: 'POST', path: '/users' });
+		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'edelgard@blackeagles.com', password: '2210#Edie' } });
 
 		// unauthorized
 		assert.deepStrictEqual(response.statusCode, 401);
+	});
+
+	it('user has to provide all fields for login', async () => {
+		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'edelgard@blackeagles.com' } });
+
+		// bad request
+		assert.deepStrictEqual(response.statusCode, 400);
 	});
 
 	//? GET USER DETAILS
