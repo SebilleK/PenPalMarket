@@ -5,6 +5,9 @@ import assert from 'node:assert';
 import { describe, it } from 'node:test';
 // mock products
 import mockProducts from '../database/json_mocks/mockProducts.json';
+// mock users
+import mockUser from '../database/json_mocks/mockUser.json';
+import mockBadUser from '../database/json_mocks/mockBadUser.json';
 
 describe('Product Routes', () => {
 	// GET ALL PRODUCTS
@@ -122,15 +125,19 @@ describe('Product Routes', () => {
 describe('Users Routes', () => {
 	//? REGISTER USER
 	it('user can register', async () => {
-		// inject user stuff here correct
-		const response = await server.inject({ method: 'POST', path: '/users' });
+		const response = await server.inject({ method: 'POST', path: '/users', body: mockUser });
 
 		assert.deepStrictEqual(response.statusCode, 201);
 	});
 
+	it('user cant register with same email', async () => {
+		const response = await server.inject({ method: 'POST', path: '/users', body: mockUser });
+
+		assert.deepStrictEqual(response.statusCode, 400);
+	});
+
 	it('bad register attempt gives out 400', async () => {
-		// inject user stuff here NOT correct
-		const response = await server.inject({ method: 'POST', path: '/users' });
+		const response = await server.inject({ method: 'POST', path: '/users', body: mockBadUser });
 
 		assert.deepStrictEqual(response.statusCode, 400);
 	});

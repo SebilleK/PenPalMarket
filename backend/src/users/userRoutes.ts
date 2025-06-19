@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 // import services later
 import { userRegister, userLogin } from './userService';
 import { User } from './UserTypes';
+import { BadRequestError } from '../../errors/customErrors';
 
 export default async function userRoutes(server: FastifyInstance) {
 	// REGISTER / POST user
@@ -12,10 +13,19 @@ export default async function userRoutes(server: FastifyInstance) {
 			reply.status(201).send({ message: 'A new user was created', newUser });
 		} catch (error: unknown) {
 			const e = error as Error;
-			reply.status(500).send({
-				message: 'Error registering user',
-				error: e.message,
-			});
+			//! ADD CUSTOMS AS NEEDED?
+
+			if (error instanceof BadRequestError) {
+				reply.status(400).send({
+					message: 'Bad Request',
+					error: e.message,
+				});
+			} else {
+				reply.status(500).send({
+					message: 'Error registering user',
+					error: e.message,
+				});
+			}
 		}
 	});
 

@@ -2,25 +2,57 @@ import { User } from './UserTypes';
 import connection from '../../database/dbConnection';
 import { ResultSetHeader } from 'mysql2';
 import { hashPassword, verifyPassword } from '../../utils/hash';
+import { BadRequestError } from '../../errors/customErrors';
 
 // REGISTER (post) a user
 export const userRegister = async (user: User): Promise<User> => {
-	const { created_at, user_id, first_name, last_name, role, phone_number, email, password } = user;
+	const { first_name, last_name, role, phone_number, email, password } = user;
 
 	if (!first_name || !last_name || !email || !password) {
-		throw new Error('All required fields must be provided.');
+		throw new BadRequestError('All required fields must be provided.');
 	}
+
+	//! email check
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	if (!emailRegex.test(email)) {
+		throw new BadRequestError('Email format is invalid.');
+	}
+
+	const sqlEmailCheck = `SELECT * FROM users WHERE email = ? LIMIT 1`;
+	const [emailRows] = await connection.promise().query(sqlEmailCheck, [email]);
+
+	if (Array.isArray(emailRows) && emailRows.length > 0) {
+		throw new BadRequestError('The provided email has already been registered.');
+	}
+	//! ____________
+	//! number check
+	const sqlPhoneCheck = `SELECT * FROM users WHERE phone_number= ? LIMIT 1`;
+	const [phoneRows] = await connection.promise().query(sqlPhoneCheck, [phone_number]);
+
+	if (Array.isArray(phoneRows) && phoneRows.length > 0) {
+		throw new BadRequestError('The provided phone number has already been registered.');
+	}
+	//! ____________
+	//! password check
+	const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,16}$/;
+
+	if (!passwordRegex.test(password)) {
+		throw new BadRequestError('Password must be 6 to 16 characters and have at least one number and a special character');
+	}
+	//! _____________
 
 	const hashedPassword = await hashPassword(password);
 
+	const created_at = Date.now();
+
 	const sql = `
         INSERT INTO users 
-        (created_at, user_id, first_name, last_name, role, phone_number, email, password) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (created_at, first_name, last_name, role, phone_number, email, password) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
 
 	try {
-		const [result] = await connection.promise().query<ResultSetHeader>(sql, [created_at, user_id, first_name, last_name, role, phone_number, email, hashedPassword]);
+		const [result] = await connection.promise().query<ResultSetHeader>(sql, [created_at, first_name, last_name, role, phone_number, email, hashedPassword]);
 
 		const newUser: User = {
 			...user,

@@ -83,11 +83,11 @@ We utilize Fastify's built-in testing method, [inject()](https://fastify.dev/doc
 **Please make sure you have seeded the database with fresh data all tests to pass!**
 
 To drop the database, re-create it and seed with fresh data again use the query:
-database/utility/**clean_db.sql**
+database/utility/**fresh_db.sql**
 (or do it manually)
 
 To run tests:
-**make sure you are in the backend directory**
+**make sure you are in the backend directory and your database is seeded with fresh data**
 
 ```bash
 npm run test
@@ -141,7 +141,7 @@ backend/
 │ ├── .... # feature domains as needed
 │ └── app.ts # configuring the fastify instance, registering routes
 │ └── index.ts # starting the server
-├── tests # wip, all tests for the endpoints
+├── tests # all needed tests for the endpoints
 ├── package.json
 └── tsconfig.json
 ```
