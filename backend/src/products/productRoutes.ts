@@ -81,7 +81,7 @@ export default async function productRoutes(server: FastifyInstance) {
 		try {
 			const deleted = await deleteProduct(id);
 			if (deleted) {
-				reply.status(200).send({ message: 'Product successfully deleted' });
+				reply.status(204).send({ message: 'Product successfully deleted' });
 			} else {
 				reply.status(404).send({ message: 'Product not found in database' });
 			}

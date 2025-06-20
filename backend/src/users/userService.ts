@@ -2,7 +2,7 @@ import { User } from './UserTypes';
 import connection from '../../database/dbConnection';
 import { ResultSetHeader } from 'mysql2';
 import { hashPassword, verifyPassword } from '../../utils/hash';
-import { BadRequestError, UnauthorizedError } from '../../errors/customErrors';
+import { BadRequestError, ForbiddenError, UnauthorizedError } from '../../errors/customErrors';
 
 // REGISTER (post) a user
 export const userRegister = async (user: User): Promise<User> => {
@@ -105,13 +105,21 @@ export const userLogin = async (email: string, password: string): Promise<Omit<U
 };
 
 // GET a user by a ID
-export const getUserById = async (id: string): Promise<User | null> => {
+export const getUserById = async (id: string): Promise<Omit<User, 'password'> | null> => {
 	const sql = 'SELECT * FROM users WHERE user_id =?';
+
+	if (!id) {
+		throw new BadRequestError('Please provide an user ID.');
+	}
 
 	try {
 		const [rows] = await connection.promise().query(sql, [id]);
 		if (Array.isArray(rows) && rows.length > 0) {
-			return rows[0] as User;
+			const user = rows[0] as User;
+
+			const { password: _, ...userWithoutPassword } = user;
+
+			return userWithoutPassword;
 		} else {
 			return null;
 		}
@@ -121,7 +129,77 @@ export const getUserById = async (id: string): Promise<User | null> => {
 };
 
 // UPDATE (put) a user
-//! TBA
+export const updateUser = async (user: Partial<User>): Promise<Partial<Omit<User, 'password'>> | null> => {
+	const { first_name, last_name, phone_number, email, password, user_id } = user;
+
+	//! ___________
+	if (!user_id) {
+		throw new BadRequestError('Please provide the ID of the user to update.');
+	}
+
+	if (!first_name && !last_name && !email && !password && !phone_number) {
+		throw new BadRequestError('At least a field to update needs to be provided.');
+	}
+
+	//! new data check
+	//! email _____
+
+	if (email) {
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(email)) {
+			throw new BadRequestError('Email format is invalid.');
+		}
+	}
+
+	//! password __
+
+	if (password) {
+		const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,16}$/;
+
+		if (!passwordRegex.test(password)) {
+			throw new BadRequestError('Password must be 6 to 16 characters and have at least one number and a special character');
+		}
+	}
+
+	//!_______________
+
+	const sql = `
+		UPDATE users
+		SET
+			first_name = ?, 
+			last_name = ?, 
+			phone_number = ?, 
+			email = ?,
+			password = ?
+		WHERE user_id = ?
+	`;
+
+	try {
+		const [rows] = await connection.promise().query<ResultSetHeader>(sql, [first_name, last_name, phone_number, email, password, user_id]);
+
+		if (rows.affectedRows === 0) {
+			throw new Error('No user found to update!');
+		}
+
+		// returned user
+		const updatedUser: Partial<User> = { user_id, first_name, last_name, email };
+
+		return updatedUser;
+	} catch (err) {
+		throw new Error(`Error updating user with ID ${user_id}: ${err}`);
+	}
+};
 
 // DELETE a user
-//!TBA
+export const deleteUser = async (id: string): Promise<boolean> => {
+	const sql = 'DELETE FROM users WHERE user_id = ?';
+
+	try {
+		const [result] = await connection.promise().query<ResultSetHeader>(sql, [id]);
+
+		// returning boolean according to delete
+		return result.affectedRows > 0;
+	} catch (err) {
+		throw new Error(`Error deleting user with ID ${id}: ${err}`);
+	}
+};

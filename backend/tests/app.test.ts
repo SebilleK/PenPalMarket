@@ -8,6 +8,7 @@ import mockProducts from '../database/json_mocks/mockProducts.json';
 // mock users
 import mockUser from '../database/json_mocks/mockUser.json';
 import mockBadUser from '../database/json_mocks/mockBadUser.json';
+import mockUserUpdate from '../database/json_mocks/mockUserUpdate.json';
 
 describe('Product Routes', () => {
 	// GET ALL PRODUCTS
@@ -113,7 +114,7 @@ describe('Product Routes', () => {
 
 			const response = await server.inject({ method: 'DELETE', path: `/products/${createdProductId}` });
 
-			assert.deepStrictEqual(response.statusCode, 200);
+			assert.deepStrictEqual(response.statusCode, 204);
 
 			const testingDelete = await server.inject({ method: 'GET', path: `/products/${createdProductId}` });
 
@@ -172,29 +173,32 @@ describe('Users Routes', () => {
 
 	//? GET USER DETAILS
 	it('user can access own details', async () => {
-		const response = await server.inject({ method: 'GET', path: '/users' });
+		//! default mock user id
+		const id = 1;
+		const response = await server.inject({ method: 'GET', path: `/users/${id}` });
 
 		assert.deepStrictEqual(response.statusCode, 200);
 	});
 
 	//? PUT USER DETAILS
-
 	it('user can edit own details', async () => {
-		const response = await server.inject({ method: 'PUT', path: '/users' });
+		const response = await server.inject({ method: 'PUT', path: '/users', body: mockUserUpdate });
 
 		assert.deepStrictEqual(response.statusCode, 200);
 	});
 
-	it('user cant add incorrect details', async () => {
-		const response = await server.inject({ method: 'PUT', path: '/users' });
+	it('user cant update with incomplete info', async () => {
+		const response = await server.inject({ method: 'PUT', path: '/users', body: mockBadUser });
 
 		assert.deepStrictEqual(response.statusCode, 400);
 	});
 
 	//? DELETE USER
 	it('user can delete itself', async () => {
-		const response = await server.inject({ method: 'DELETE', path: '/users' });
+		//! default mock user id
+		const id = 1;
+		const response = await server.inject({ method: 'DELETE', path: `/users/${id}` });
 
-		assert.deepStrictEqual(response.statusCode, 200);
+		assert.deepStrictEqual(response.statusCode, 204);
 	});
 });
