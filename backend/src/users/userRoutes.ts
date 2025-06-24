@@ -3,7 +3,6 @@ import { FastifyInstance } from 'fastify';
 import { userRegister, userLogin, getUserById, updateUser, deleteUser } from './userService';
 import { User } from './UserTypes';
 import { BadRequestError, UnauthorizedError } from '../../errors/customErrors';
-import { request } from 'http';
 
 export default async function userRoutes(server: FastifyInstance) {
 	// REGISTER / POST user
@@ -36,8 +35,30 @@ export default async function userRoutes(server: FastifyInstance) {
 		const { email, password } = request.body as { email: string; password: string };
 
 		try {
+			//! LOGIN
 			const user = await userLogin(email, password);
-			reply.status(200).send({ message: 'Login successful' });
+			//! JWT
+			// Generate JWT after successful login => id, name, email
+
+			// using returned info from userWithoutPassword => see userLogin in userService
+			const jwtInfo = {
+				id: user.user_id,
+				name: user.first_name + ' ' + user.last_name,
+				email: user.email,
+			};
+
+			// @ts-ignore
+			const jwtGenerator = request.jwt.sign(jwtInfo);
+
+			// set cookie with the jwt
+			reply.setCookie('access_token', jwtGenerator, {
+				path: '/', // => cookie sent with every request
+				httpOnly: true,
+				secure: true,
+			});
+
+			// reply includes token
+			reply.status(200).send({ message: 'Login successful', accessToken: jwtGenerator });
 		} catch (error: unknown) {
 			const e = error as Error;
 			//! ADD CUSTOMS AS NEEDED?

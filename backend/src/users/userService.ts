@@ -88,9 +88,9 @@ export const userLogin = async (email: string, password: string): Promise<Omit<U
 			throw new UnauthorizedError('Invalid credentials.');
 		}
 
-		const { password: _, ...userWithoutPassword } = user;
+		//? User exists + Password correct => Generate a JWT (id,name,email) => this is handled in the userRoutes.ts !
 
-		// Generate JWT later
+		const { password: _, ...userWithoutPassword } = user;
 
 		return userWithoutPassword;
 	} catch (error) {
