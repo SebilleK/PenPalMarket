@@ -15,6 +15,19 @@ WIP.
 
 ## Quickstart
 
+1. Clone this Repo
+
+2. Create a MySQL database and seed it with data using backend/database/fresh_db.sql
+
+3. Use .example-env to create an .env with your / the correct values
+
+4. Run the project
+
+```bash
+cd backend
+npm run start-ts
+```
+
 ### Backend
 
 ---
@@ -76,6 +89,25 @@ npm run build
 npm run start
 ```
 
+## JWT and Authentication
+
+Some routes are protected. You need to be logged in, and have a valid access token (JWT). We're using the official plugins _@fastify/jwt_ to generate and verify JWT and _@fastify/cookie_ to read and set cookies. We're also using a Fastify preHandler hook (that runs before the actual route).
+
+Check out _app.ts_ for the implementation. In users > _userRoutes.ts_ you can see the /login route, where after a successful login (check out _userService.ts_) we generate a valid token and set a cookie with it that will be sent with every request, and will be read when necessary.
+
+Make sure to set a **JWT secret** and a **Cookies secret** in your **environment variables**. Check out the file _.example-env_
+
+### Protected Routes
+
+These are the routes that need a valid access token / bearer token, and where we use the preHandler hook to check it.
+
+### Typing Issues
+
+In the GeneralTypes.ts we add the custom property req.jwt to the interface of FastifyRequest.
+
+If issues with typing arise, refer to this:
+https://medium.com/@othiagoveloso/property-jwtverify-does-not-exist-on-type-fastifyrequest-what-to-do-efed4c48c4a0
+
 ## Tests
 
 We utilize Fastify's built-in testing method, [inject()](https://fastify.dev/docs/v1.14.x/Documentation/Testing/) — which injects fake http requests, along with Node's native assertion and testing modules, to validate our backend API. We intend to use a TDD approach where we write tests before the actual implementation.
@@ -92,6 +124,8 @@ To run tests:
 ```bash
 npm run test
 ```
+
+On _database/json_mocks_ you can find some useful json with example values to create/update a user or product, etc:.
 
 ## Database
 
