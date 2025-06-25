@@ -86,7 +86,8 @@ export default async function userRoutes(server: FastifyInstance) {
 	});
 
 	// GET user by ID
-	server.get('/users/:id', async (request, reply) => {
+	// @ts-ignore
+	server.get('/users/:id', { preHandler: [server.authenticate] }, async (request, reply) => {
 		const { id } = request.params as { id: string };
 
 		try {
@@ -124,7 +125,8 @@ export default async function userRoutes(server: FastifyInstance) {
 	});
 
 	// PUT update user
-	server.put('/users', async (request, reply) => {
+	// @ts-ignore
+	server.put('/users', { preHandler: [server.authenticate] }, async (request, reply) => {
 		const user: User = request.body as User;
 
 		try {
@@ -157,8 +159,19 @@ export default async function userRoutes(server: FastifyInstance) {
 	});
 
 	// DELETE user
-	server.delete('/users/:id', async (request, reply) => {
+	// @ts-ignore
+	server.delete('/users/:id', { preHandler: [server.authenticate] }, async (request, reply) => {
 		const { id } = request.params as { id: string };
+
+		//! EXTRA LOGIC FOR AUTH. POLISH LATER.
+		const token = request.cookies.access_token;
+		// @ts-ignore
+		const decodedTokenCookie = server.jwt.decode(token);
+		console.log(decodedTokenCookie);
+		// @ts-ignore
+		if (decodedTokenCookie.id != id) {
+			throw new UnauthorizedError('You can only delete your own account.');
+		}
 
 		try {
 			const deleted = await deleteUser(id);

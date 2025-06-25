@@ -1,4 +1,4 @@
-import Fastify from 'fastify';
+import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
 // routes
 import productRoutes from './products/productRoutes';
 import userRoutes from './users/userRoutes';
@@ -21,6 +21,20 @@ if (!process.env.SECRET_JWT) {
 }
 
 server.register(fjwt, { secret: process.env.SECRET_JWT });
+
+//! MOVE THIS ELSEWHERE LATER!
+//! additional auth is made in the routes themselves.
+//? Check if there is a token, and if not the user is unauthenticated!
+server.decorate('authenticate', async (req: FastifyRequest, reply: FastifyReply) => {
+	const token = req.cookies.access_token;
+	if (!token) {
+		return reply.status(401).send({ message: 'Authentication required. Please login.' });
+	}
+	// here decoded will be a different type by default but we want it to be of user-payload type
+	// @ts-ignore
+	const decoded = req.jwt.verify<FastifyJWT['user']>(token);
+	req.user = decoded;
+});
 
 server.addHook('preHandler', (req, res, next) => {
 	//! FIX LATER, STRICTER TYPING
