@@ -11,7 +11,8 @@ In pursuit of simplicity and maintainability, we prioritize a **minimalistic app
 
 This document serves as a guide to all aspects of the project.
 
-WIP.
+**WIP.**
+**currently implementing route authorization logic and refactoring accordingly.**
 
 ## Quickstart
 
