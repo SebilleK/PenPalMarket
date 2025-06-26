@@ -102,12 +102,27 @@ Make sure to set a **JWT secret** and a **Cookies secret** in your **environment
 
 These are the routes that need a valid access token / bearer token, and where we use the preHandler hook to check it.
 
-### Typing Issues
+There are 2 authentication levels: authenticate and authenticate*self. While the first needs the user to only be logged in, the first demands that the id present in the request (for example, to delete a user, the user id in that request) matches the id present in the decoded jwt that's in the access_token cookie. Check implementation in \_app.ts*.
 
-In the GeneralTypes.ts we add the custom property req.jwt to the interface of FastifyRequest.
+```bash
+const { id } = req.params as { id: string };
 
-If issues with typing arise, refer to this:
-https://medium.com/@othiagoveloso/property-jwtverify-does-not-exist-on-type-fastifyrequest-what-to-do-efed4c48c4a0
+const token = req.cookies.access_token;
+
+// verify authenticity too!
+const decoded = req.jwt.verify<FastifyJWT['user']>(token);
+
+// second level, "authenticate_self"
+if (decoded.id != id) {
+	throw new UnauthorizedError('Request ID and User ID mismatch.');
+}
+```
+
+#### General Access Routes
+
+#### Level 1 Routes
+
+#### Level 2 Routes
 
 ## Tests
 
