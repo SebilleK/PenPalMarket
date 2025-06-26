@@ -7,6 +7,8 @@ import fjwt from '@fastify/jwt';
 import fCookie from '@fastify/cookie';
 // env
 import dotenv from 'dotenv';
+// errors
+import { UnauthorizedError } from '../errors/customErrors';
 
 // loading env variables
 dotenv.config();
@@ -20,19 +22,54 @@ if (!process.env.SECRET_JWT) {
 	throw new Error('SECRET_JWT is not defined! Add it to the environment variables.');
 }
 
-server.register(fjwt, { secret: process.env.SECRET_JWT });
+server.register(fjwt, {
+	secret: process.env.SECRET_JWT,
+	sign: {
+		expiresIn: '1d',
+	},
+});
 
-//! MOVE THIS ELSEWHERE LATER!
-//! additional auth is made in the routes themselves.
-//? Check if there is a token, and if not the user is unauthenticated!
+// preHandlers / AUTH checks
+//? LEVEL 1 - AUTHENTICATED / LOGGED IN
 server.decorate('authenticate', async (req: FastifyRequest, reply: FastifyReply) => {
 	const token = req.cookies.access_token;
+
 	if (!token) {
-		return reply.status(401).send({ message: 'Authentication required. Please login.' });
+		throw new UnauthorizedError('Please login for access.');
 	}
-	// here decoded will be a different type by default but we want it to be of user-payload type
+
+	//? will throw an error if token is invalid
 	// @ts-ignore
 	const decoded = req.jwt.verify<FastifyJWT['user']>(token);
+
+	// @ts-ignore
+	req.user = decoded;
+});
+
+//? LEVEL 2 - AUTHENTICATED AND REQUEST ID = USER ID (ON ACCESS_TOKEN)
+server.decorate('authenticate_self', async (req: FastifyRequest, reply: FastifyReply) => {
+	const { id } = req.params as { id: string };
+
+	const token = req.cookies.access_token;
+
+	// redundant, but custom message
+	if (!token) {
+		throw new UnauthorizedError('Please login for access.');
+	}
+
+	// delete later _____
+	//? NOTE: THE BELOW CODE ONLY DECODES THE TOKEN, IT DOESNT VERIFY AUTHENTICITY!
+	//! const decodedToken = server.jwt.decode(token);
+	// delete later _____
+
+	//? USE THE BELOW VER.
+	// @ts-ignore
+	const decoded = req.jwt.verify<FastifyJWT['user']>(token);
+
+	if (decoded.id != id) {
+		throw new UnauthorizedError('Request ID and User ID mismatch.');
+	}
+
 	req.user = decoded;
 });
 

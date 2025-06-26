@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 // import services later
-import { userRegister, userLogin, getUserById, updateUser, deleteUser } from './userService';
+import { userRegister, userLogin, getUserById, updateUser, deleteUser, userLogout } from './userService';
 import { User } from './UserTypes';
 import { BadRequestError, UnauthorizedError } from '../../errors/customErrors';
 
@@ -13,7 +13,6 @@ export default async function userRoutes(server: FastifyInstance) {
 			reply.status(201).send({ message: 'A new user was created', newUser });
 		} catch (error: unknown) {
 			const e = error as Error;
-			//! ADD CUSTOMS AS NEEDED?
 
 			if (error instanceof BadRequestError) {
 				return reply.status(400).send({
@@ -55,6 +54,7 @@ export default async function userRoutes(server: FastifyInstance) {
 				path: '/', // => cookie sent with every request
 				httpOnly: true,
 				secure: true,
+				maxAge: 86400000,
 			});
 
 			// reply includes token
@@ -79,7 +79,24 @@ export default async function userRoutes(server: FastifyInstance) {
 
 			// default
 			return reply.status(500).send({
-				message: 'Error registering user',
+				message: 'Error logging in user',
+				error: e.message,
+			});
+		}
+	});
+
+	// LOGOUT user
+	server.post('/logout', async (request, reply) => {
+		try {
+			const successfulLogout = userLogout(reply);
+
+			reply.status(200).send({ message: 'Logout successful', successfulLogout });
+		} catch (error: unknown) {
+			const e = error as Error;
+
+			// default
+			return reply.status(500).send({
+				message: 'There was an error logging out',
 				error: e.message,
 			});
 		}
@@ -100,7 +117,6 @@ export default async function userRoutes(server: FastifyInstance) {
 			}
 		} catch (error: unknown) {
 			const e = error as Error;
-			//! ADD CUSTOMS AS NEEDED?
 
 			if (error instanceof BadRequestError) {
 				return reply.status(400).send({
@@ -126,15 +142,15 @@ export default async function userRoutes(server: FastifyInstance) {
 
 	// PUT update user
 	// @ts-ignore
-	server.put('/users', { preHandler: [server.authenticate] }, async (request, reply) => {
+	server.put('/users/:id', { preHandler: [server.authenticate_self] }, async (request, reply) => {
+		const { id } = request.params as { id: string };
 		const user: User = request.body as User;
 
 		try {
-			const updatedUser = await updateUser(user);
+			const updatedUser = await updateUser(user, id);
 			reply.status(200).send({ message: 'Request successful, user updated', updatedUser });
 		} catch (error: unknown) {
 			const e = error as Error;
-			//! ADD CUSTOMS AS NEEDED?
 
 			if (error instanceof BadRequestError) {
 				return reply.status(400).send({
@@ -160,18 +176,8 @@ export default async function userRoutes(server: FastifyInstance) {
 
 	// DELETE user
 	// @ts-ignore
-	server.delete('/users/:id', { preHandler: [server.authenticate] }, async (request, reply) => {
+	server.delete('/users/:id', { preHandler: [server.authenticate_self] }, async (request, reply) => {
 		const { id } = request.params as { id: string };
-
-		//! EXTRA LOGIC FOR AUTH. POLISH LATER.
-		const token = request.cookies.access_token;
-		// @ts-ignore
-		const decodedTokenCookie = server.jwt.decode(token);
-		console.log(decodedTokenCookie);
-		// @ts-ignore
-		if (decodedTokenCookie.id != id) {
-			throw new UnauthorizedError('You can only delete your own account.');
-		}
 
 		try {
 			const deleted = await deleteUser(id);
@@ -183,7 +189,6 @@ export default async function userRoutes(server: FastifyInstance) {
 			}
 		} catch (error: unknown) {
 			const e = error as Error;
-			//! ADD CUSTOMS AS NEEDED?
 
 			if (error instanceof BadRequestError) {
 				return reply.status(400).send({

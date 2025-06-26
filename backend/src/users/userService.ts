@@ -3,6 +3,7 @@ import connection from '../../database/dbConnection';
 import { ResultSetHeader } from 'mysql2';
 import { hashPassword, verifyPassword } from '../../utils/hash';
 import { BadRequestError, ForbiddenError, UnauthorizedError } from '../../errors/customErrors';
+import { FastifyReply } from 'fastify';
 
 // REGISTER (post) a user
 export const userRegister = async (user: User): Promise<User> => {
@@ -104,6 +105,21 @@ export const userLogin = async (email: string, password: string): Promise<Omit<U
 	}
 };
 
+// LOGOUT a user
+export const userLogout = async (reply: FastifyReply): Promise<string> => {
+	try {
+		// cleaning cookies
+		//? clear cookie storing jwt!
+		reply.clearCookie('access_token', { path: '/' });
+
+		console.log('access_token cookie cleared successfuly');
+
+		return 'success! logging out.';
+	} catch (error) {
+		throw new Error(`Error while trying to logout: ${error}`);
+	}
+};
+
 // GET a user by a ID
 export const getUserById = async (id: string): Promise<Omit<User, 'password'> | null> => {
 	const sql = 'SELECT * FROM users WHERE user_id =?';
@@ -129,8 +145,9 @@ export const getUserById = async (id: string): Promise<Omit<User, 'password'> | 
 };
 
 // UPDATE (put) a user
-export const updateUser = async (user: Partial<User>): Promise<Partial<Omit<User, 'password'>> | null> => {
-	const { first_name, last_name, phone_number, email, password, user_id } = user;
+export const updateUser = async (user: Partial<User>, id: string): Promise<Partial<Omit<User, 'password'>> | null> => {
+	const user_id = id;
+	const { first_name, last_name, phone_number, email, password } = user;
 
 	//! ___________
 	if (!user_id) {
