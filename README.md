@@ -11,8 +11,7 @@ In pursuit of simplicity and maintainability, we prioritize a **minimalistic app
 
 This document serves as a guide to all aspects of the project.
 
-**WIP.**
-**currently implementing route authorization logic and refactoring accordingly.**
+**WIP**
 
 ## Quickstart
 
@@ -102,7 +101,9 @@ Make sure to set a **JWT secret** and a **Cookies secret** in your **environment
 
 These are the routes that need a valid access token / bearer token, and where we use the preHandler hook to check it.
 
-There are 2 authentication levels: authenticate and authenticate*self. While the first needs the user to only be logged in, the first demands that the id present in the request (for example, to delete a user, the user id in that request) matches the id present in the decoded jwt that's in the access_token cookie. Check implementation in \_app.ts*.
+There are 2 authentication levels: authenticate and authenticate_self. While the first needs the user to only be logged in, the second demands that the id present in the request (for example, to delete a user, the user id sent with the route) matches the id present in the decoded jwt that's in the access_token cookie. Check implementation in \_app.ts\*.
+
+_Admin only authentication level TBA._
 
 ```bash
 const { id } = req.params as { id: string };
@@ -120,19 +121,19 @@ if (decoded.id != id) {
 
 #### General Access Routes
 
+_TBA_
+
 #### Level 1 Routes
+
+_TBA_
 
 #### Level 2 Routes
 
+_TBA_
+
 ## Tests
 
-We utilize Fastify's built-in testing method, [inject()](https://fastify.dev/docs/v1.14.x/Documentation/Testing/) — which injects fake http requests, along with Node's native assertion and testing modules, to validate our backend API. We intend to use a TDD approach where we write tests before the actual implementation.
-
-**Please make sure you have seeded the database with fresh data all tests to pass!**
-
-To drop the database, re-create it and seed with fresh data again use the query:
-database/utility/**fresh_db.sql**
-(or do it manually)
+We utilize Fastify's built-in testing method, [inject()](https://fastify.dev/docs/v1.14.x/Documentation/Testing/) — which injects fake http requests, along with Node's native assertion and testing modules, to validate our backend API. We intend to use a TDD approach where we write tests before the actual implementation, refactoring as needed.
 
 To run tests:
 **make sure you are in the backend directory and your database is seeded with fresh data**
@@ -141,7 +142,37 @@ To run tests:
 npm run test
 ```
 
+To drop the database, re-create it and seed with fresh data again use the query:
+database/utility/**fresh_db.sql**
+(or do it manually)
+
 On _database/json_mocks_ you can find some useful json with example values to create/update a user or product, etc:.
+
+**Isolation**
+
+When NODE_ENV=test, the database connection is different. Check \_database/testConnection.ts\*. Before each test, we do a database transaction to isolate it. Then, we rollback that change. This way, each test is independent.
+
+```bash
+import connection from '../database/dbConnection';
+
+beforeEach(async () => {
+	connection.promise().query('START TRANSACTION');
+	// we also seed user data to rollback later here!
+});
+
+afterEach(async () => {
+	connection.promise().query('ROLLBACK');
+});
+```
+
+**Test User:**
+
+```
+{
+	"email": "test@user.com",
+	"password": "TestPassword1#",
+}
+```
 
 ## Database
 

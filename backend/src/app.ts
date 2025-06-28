@@ -8,7 +8,7 @@ import fCookie from '@fastify/cookie';
 // env
 import dotenv from 'dotenv';
 // errors
-import { UnauthorizedError } from '../errors/customErrors';
+import { ForbiddenError, UnauthorizedError } from '../errors/customErrors';
 
 // loading env variables
 dotenv.config();
@@ -67,7 +67,7 @@ server.decorate('authenticate_self', async (req: FastifyRequest, reply: FastifyR
 	const decoded = req.jwt.verify<FastifyJWT['user']>(token);
 
 	if (decoded.id != id) {
-		throw new UnauthorizedError('Request ID and User ID mismatch.');
+		throw new ForbiddenError('Request ID and User ID mismatch.');
 	}
 
 	req.user = decoded;
