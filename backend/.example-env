@@ -9,3 +9,7 @@ DB_NAME=
 
 SECRET_JWT=
 SECRET_COOKIE=
+
+## Testing
+
+NODE_ENV=

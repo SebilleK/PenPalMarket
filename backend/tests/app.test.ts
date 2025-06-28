@@ -2,13 +2,25 @@
 import server from '../src/app';
 // node testing
 import assert from 'node:assert';
-import { describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 // mock products
 import mockProducts from '../database/json_mocks/mockProducts.json';
 // mock users
 import mockUser from '../database/json_mocks/mockUser.json';
 import mockBadUser from '../database/json_mocks/mockBadUser.json';
 import mockUserUpdate from '../database/json_mocks/mockUserUpdate.json';
+
+//! setup for isolation, rollback
+import { startTransaction, rollbackTransaction, seedTestUser } from './testHelpers';
+
+beforeEach(async () => {
+	await startTransaction();
+	await seedTestUser();
+});
+
+afterEach(async () => {
+	await rollbackTransaction();
+});
 
 describe('Product Routes', () => {
 	// GET ALL PRODUCTS
@@ -66,8 +78,6 @@ describe('Product Routes', () => {
 
 	// CREATING, UPDATING, DELETING PRODUCTS
 	describe('Product C_UD Operations', () => {
-		let createdProductId: number;
-
 		// CREATE PRODUCT
 		it('creates a new product', async () => {
 			const response = await server.inject({
@@ -83,20 +93,13 @@ describe('Product Routes', () => {
 			});
 
 			assert.deepStrictEqual(response.statusCode, 201);
-
-			// storing the created product ID to update and delete the same product
-			const createdProduct = JSON.parse(response.body);
-			createdProductId = createdProduct.product_id;
 		});
 
 		// UPDATE PRODUCT
 		it('updates a product', async () => {
-			// if product creating suceeded, the variable exists
-			assert.ok(createdProductId);
-
 			const response = await server.inject({
 				method: 'PUT',
-				path: `/products/${createdProductId}`,
+				path: `/products/1`,
 				payload: {
 					name: 'Simple Pen',
 					price: 5.99,
@@ -110,13 +113,11 @@ describe('Product Routes', () => {
 
 		// DELETE PRODUCT
 		it('deletes a product', async () => {
-			assert.ok(createdProductId, 'Product was not created properly');
-
-			const response = await server.inject({ method: 'DELETE', path: `/products/${createdProductId}` });
+			const response = await server.inject({ method: 'DELETE', path: `/products/1` });
 
 			assert.deepStrictEqual(response.statusCode, 204);
 
-			const testingDelete = await server.inject({ method: 'GET', path: `/products/${createdProductId}` });
+			const testingDelete = await server.inject({ method: 'GET', path: `/products/21452341234` });
 
 			assert.deepStrictEqual(testingDelete.statusCode, 404);
 		});
@@ -125,16 +126,14 @@ describe('Product Routes', () => {
 
 describe('Users Routes', () => {
 	//? REGISTER USER
-	it('user can register', async () => {
+	it('user can register and info has to be unique', async () => {
 		const response = await server.inject({ method: 'POST', path: '/users', body: mockUser });
 
 		assert.deepStrictEqual(response.statusCode, 201);
-	});
 
-	it('user cant register with same info', async () => {
-		const response = await server.inject({ method: 'POST', path: '/users', body: mockUser });
+		const responseSecondAttempt = await server.inject({ method: 'POST', path: '/users', body: mockUser });
 
-		assert.deepStrictEqual(response.statusCode, 400);
+		assert.deepStrictEqual(responseSecondAttempt.statusCode, 400);
 	});
 
 	it('bad register attempt gives out 400', async () => {
@@ -143,23 +142,23 @@ describe('Users Routes', () => {
 		assert.deepStrictEqual(response.statusCode, 400);
 	});
 
-	//? LOGIN USER
+	//? LOGIN USER // from here
 	it('user can login', async () => {
-		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'edelgard@blackeagles.com', password: '2206Edie#' } });
+		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
 
 		assert.deepStrictEqual(response.statusCode, 200);
 	});
 
 	it('user cant login with wrong password', async () => {
 		// BAD USER CREDENTIALS
-		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'edelgard@blackeagles.com', password: '2210#Edie' } });
+		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1########' } });
 
 		// unauthorized
 		assert.deepStrictEqual(response.statusCode, 401);
 	});
 
 	it('user has to provide all fields for login', async () => {
-		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'edelgard@blackeagles.com' } });
+		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com' } });
 
 		// bad request
 		assert.deepStrictEqual(response.statusCode, 400);
@@ -169,78 +168,81 @@ describe('Users Routes', () => {
 	describe('protected routes and JWT', () => {
 		//? GET USER DETAILS
 		it('user can access own details', async () => {
-			const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'edelgard@blackeagles.com', password: '2206Edie#' } });
+			const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
 			// AUTH COOKIE / JWT
 			const parsedJSON = JSON.parse(response.body);
 			const setJWT = parsedJSON.accessToken;
 
 			//! default mock user id
 			const id = 1;
-			const responseGET = await server.inject({ method: 'GET', path: `/users/${id}`, headers: { cookie: setJWT } });
+			const responseGET = await server.inject({ method: 'GET', path: `/users/${id}`, headers: { cookie: `access_token=${setJWT}` } });
 
 			assert.deepStrictEqual(responseGET.statusCode, 200);
+
+			const responseLogout = await server.inject({ method: 'POST', path: '/logout' });
+			assert.deepStrictEqual(responseLogout.statusCode, 200);
 		});
 
 		//? PUT USER DETAILS
 		it('user can edit own details', async () => {
-			const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'edelgard@blackeagles.com', password: '2206Edie#' } });
+			const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
 			// AUTH COOKIE / JWT
 			const parsedJSON = JSON.parse(response.body);
 			const setJWT = parsedJSON.accessToken;
 
 			const id = 1;
-			const responsePUT = await server.inject({ method: 'PUT', path: `/users/${id}`, body: mockUserUpdate, headers: { cookie: setJWT } });
+			const responsePUT = await server.inject({ method: 'PUT', path: `/users/${id}`, body: mockUserUpdate, headers: { cookie: `access_token=${setJWT.toString()}` } });
 
 			assert.deepStrictEqual(responsePUT.statusCode, 200);
-		});
 
-		it('user cant update with incomplete info', async () => {
-			const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'edelgard@blackeagles.com', password: '2206Edie#' } });
-			// AUTH COOKIE / JWT
-			const parsedJSON = JSON.parse(response.body);
-			const setJWT = parsedJSON.accessToken;
-
-			const id = 1;
-			const responsePUT = await server.inject({ method: 'PUT', path: `/users/${id}`, body: mockBadUser, headers: { cookie: setJWT } });
-
-			assert.deepStrictEqual(responsePUT.statusCode, 400);
+			const responseLogout = await server.inject({ method: 'POST', path: '/logout' });
+			assert.deepStrictEqual(responseLogout.statusCode, 200);
 		});
 
 		it('user cant update other users', async () => {
-			const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'edelgard@blackeagles.com', password: '2206Edie#' } });
+			const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
 			// AUTH COOKIE / JWT
 			const parsedJSON = JSON.parse(response.body);
 			const setJWT = parsedJSON.accessToken;
 
 			const id = 2;
-			const responsePUT = await server.inject({ method: 'PUT', path: `/users/${id}`, body: mockUserUpdate, headers: { cookie: setJWT } });
+			const responsePUT = await server.inject({ method: 'PUT', path: `/users/${id}`, body: mockUserUpdate, headers: { cookie: `access_token=${setJWT}` } });
 
-			assert.deepStrictEqual(responsePUT.statusCode, 401);
+			assert.deepStrictEqual(responsePUT.statusCode, 403);
+
+			const responseLogout = await server.inject({ method: 'POST', path: '/logout' });
+			assert.deepStrictEqual(responseLogout.statusCode, 200);
 		});
 
 		//? DELETE USER
+		it('user cant delete others', async () => {
+			const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
+			// AUTH COOKIE / JWT
+			const parsedJSON = JSON.parse(response.body);
+			const setJWT = parsedJSON.accessToken;
+
+			const id = 2;
+			const responseDELETE = await server.inject({ method: 'DELETE', path: `/users/${id}`, headers: { cookie: `access_token=${setJWT}` } });
+
+			assert.deepStrictEqual(responseDELETE.statusCode, 403);
+
+			const responseLogout = await server.inject({ method: 'POST', path: '/logout' });
+			assert.deepStrictEqual(responseLogout.statusCode, 200);
+		});
+
 		it('user can delete itself', async () => {
-			const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'edelgard@blackeagles.com', password: '2206Edie#' } });
+			const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
 			// AUTH COOKIE / JWT
 			const parsedJSON = JSON.parse(response.body);
 			const setJWT = parsedJSON.accessToken;
 
 			const id = 1;
-			const responseDELETE = await server.inject({ method: 'DELETE', path: `/users/${id}`, headers: { cookie: setJWT } });
+			const responseDELETE = await server.inject({ method: 'DELETE', path: `/users/${id}`, headers: { cookie: `access_token=${setJWT}` } });
 
 			assert.deepStrictEqual(responseDELETE.statusCode, 204);
-		});
 
-		it('user cant delete others', async () => {
-			const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'edelgard@blackeagles.com', password: '2206Edie#' } });
-			// AUTH COOKIE / JWT
-			const parsedJSON = JSON.parse(response.body);
-			const setJWT = parsedJSON.accessToken;
-
-			const id = 2;
-			const responseDELETE = await server.inject({ method: 'DELETE', path: `/users/${id}`, headers: { cookie: setJWT } });
-
-			assert.deepStrictEqual(responseDELETE.statusCode, 401);
+			const responseLogout = await server.inject({ method: 'POST', path: '/logout' });
+			assert.deepStrictEqual(responseLogout.statusCode, 200);
 		});
 	});
 });

@@ -1,22 +1,6 @@
-import mysql from 'mysql2';
-import dotenv from 'dotenv';
+import prodConnection from './prodConnection';
+import testConnection from './testConnection';
 
-// loading env variables
-dotenv.config();
-
-const connection = mysql.createConnection({
-	host: process.env.DB_HOST,
-	user: process.env.DB_USER,
-	password: process.env.DB_PASSWORD,
-	database: process.env.DB_NAME,
-});
-
-connection.connect((err) => {
-    if (err) {
-        console.error('Error Connecting to Database: ' + err.stack);
-        return;
-    }
-    console.log('Connected to the MySQL penpal database successfully.');
-})
+const connection = process.env.NODE_ENV === 'test' ? testConnection : prodConnection;
 
 export default connection;
