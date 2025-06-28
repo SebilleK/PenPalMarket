@@ -2,7 +2,7 @@ import { User } from './UserTypes';
 import connection from '../../database/dbConnection';
 import { ResultSetHeader } from 'mysql2';
 import { hashPassword, verifyPassword } from '../../utils/hash';
-import { BadRequestError, ForbiddenError, UnauthorizedError } from '../../errors/customErrors';
+import { BadRequestError, ForbiddenError, NotFoundError, UnauthorizedError } from '../../errors/customErrors';
 import { FastifyReply } from 'fastify';
 
 // REGISTER (post) a user
@@ -145,63 +145,97 @@ export const getUserById = async (id: string): Promise<Omit<User, 'password'> | 
 };
 
 // UPDATE (put) a user
-export const updateUser = async (user: Partial<User>, id: string): Promise<Partial<Omit<User, 'password'>> | null> => {
-	const user_id = id;
-	const { first_name, last_name, phone_number, email, password } = user;
-
+export const updateUser = async (user: Partial<User>, id: string): Promise<Omit<User, 'password'> | null> => {
 	//! ___________
-	if (!user_id) {
+	if (id == undefined) {
 		throw new BadRequestError('Please provide the ID of the user to update.');
 	}
 
+	const user_id = id;
+
+	const { first_name, last_name, phone_number, email, password } = user;
+
+	//? fields and values for SQL
+	const fields: string[] = [];
+	const values: string[] = [];
+
+	//! ___________
 	if (!first_name && !last_name && !email && !password && !phone_number) {
 		throw new BadRequestError('At least a field to update needs to be provided.');
 	}
 
-	//! new data check
+	//? dynamically preparing SQL statement
+
+	if (first_name !== undefined) {
+		fields.push('first_name = ?');
+		values.push(first_name);
+	}
+
+	if (last_name !== undefined) {
+		fields.push('last_name = ?');
+		values.push(last_name);
+	}
+
+	if (phone_number !== undefined) {
+		fields.push('phone_number = ?');
+		values.push(phone_number);
+	}
+
 	//! email _____
 
-	if (email) {
+	if (email !== undefined) {
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(email)) {
 			throw new BadRequestError('Email format is invalid.');
 		}
+
+		fields.push('email = ?');
+		values.push(email);
 	}
 
 	//! password __
 
-	if (password) {
+	if (password !== undefined) {
 		const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,16}$/;
 
 		if (!passwordRegex.test(password)) {
 			throw new BadRequestError('Password must be 6 to 16 characters and have at least one number and a special character');
 		}
+
+		fields.push('password = ?');
+
+		const hashedPassword = await hashPassword(password);
+		values.push(hashedPassword);
 	}
 
 	//!_______________
 
-	const sql = `
-		UPDATE users
-		SET
-			first_name = ?, 
-			last_name = ?, 
-			phone_number = ?, 
-			email = ?,
-			password = ?
-		WHERE user_id = ?
-	`;
+	values.push(user_id);
+
+	//? dinamically building SQL according to provided fields. Allows partial updates and avoids errors/ wiping info
+	const sql = `UPDATE users SET ${fields.join(', ')} WHERE user_id = ?`;
 
 	try {
-		const [rows] = await connection.promise().query<ResultSetHeader>(sql, [first_name, last_name, phone_number, email, password, user_id]);
+		const [rows] = await connection.promise().query<ResultSetHeader>(sql, values);
 
 		if (rows.affectedRows === 0) {
-			throw new Error('No user found to update!');
+			throw new NotFoundError('No user found to update!');
 		}
 
-		// returned user
-		const updatedUser: Partial<User> = { user_id, first_name, last_name, email };
+		// return the full new updated user
+		const refetchSql = 'SELECT * FROM users WHERE user_id =?';
 
-		return updatedUser;
+		const [refetch] = await connection.promise().query(refetchSql, [user_id]);
+
+		if (Array.isArray(refetch) && refetch.length > 0) {
+			const updatedUser = refetch[0] as User;
+
+			const { password: _, ...userWithoutPassword } = updatedUser;
+
+			return userWithoutPassword;
+		} else {
+			throw new Error('Update ocurred but it was impossible to refetch the user from the database.');
+		}
 	} catch (err) {
 		throw new Error(`Error updating user with ID ${user_id}: ${err}`);
 	}

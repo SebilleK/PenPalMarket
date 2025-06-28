@@ -54,7 +54,7 @@ export default async function userRoutes(server: FastifyInstance) {
 				path: '/', // => cookie sent with every request
 				httpOnly: true,
 				secure: true,
-				maxAge: 86400000,
+				maxAge: 86400,
 			});
 
 			// reply includes token
