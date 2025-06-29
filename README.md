@@ -97,6 +97,8 @@ Check out _app.ts_ for the implementation. In users > _userRoutes.ts_ you can se
 
 Make sure to set a **JWT secret** and a **Cookies secret** in your **environment variables**. Check out the file _.example-env_
 
+This article was a very nice help, especially with Typescript: https://medium.com/@atatijr/token-based-authentication-with-fastify-jwt-and-typescript-1fa5cccc63c5
+
 ### Protected Routes
 
 These are the routes that need a valid access token / bearer token, and where we use the preHandler hook to check it.

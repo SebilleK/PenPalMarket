@@ -3,12 +3,14 @@ import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
 import productRoutes from './products/productRoutes';
 import userRoutes from './users/userRoutes';
 // jwt and cookies
-import fjwt from '@fastify/jwt';
+import fjwt, { FastifyJWT } from '@fastify/jwt';
 import fCookie from '@fastify/cookie';
 // env
 import dotenv from 'dotenv';
 // errors
 import { ForbiddenError, UnauthorizedError } from '../errors/customErrors';
+// types
+import '../utils/types';
 
 // loading env variables
 dotenv.config();
@@ -39,10 +41,8 @@ server.decorate('authenticate', async (req: FastifyRequest, reply: FastifyReply)
 	}
 
 	//? will throw an error if token is invalid
-	// @ts-ignore
 	const decoded = req.jwt.verify<FastifyJWT['user']>(token);
 
-	// @ts-ignore
 	req.user = decoded;
 });
 
@@ -63,7 +63,6 @@ server.decorate('authenticate_self', async (req: FastifyRequest, reply: FastifyR
 	// delete later _____
 
 	//? USE THE BELOW VER.
-	// @ts-ignore
 	const decoded = req.jwt.verify<FastifyJWT['user']>(token);
 
 	if (decoded.id != id) {
@@ -75,7 +74,7 @@ server.decorate('authenticate_self', async (req: FastifyRequest, reply: FastifyR
 
 server.addHook('preHandler', (req, res, next) => {
 	//! FIX LATER, STRICTER TYPING
-	// @ts-ignore
+
 	req.jwt = server.jwt;
 	return next();
 });

@@ -44,9 +44,9 @@ export default async function userRoutes(server: FastifyInstance) {
 				id: user.user_id,
 				name: user.first_name + ' ' + user.last_name,
 				email: user.email,
+				role: user.role,
 			};
 
-			// @ts-ignore
 			const jwtGenerator = request.jwt.sign(jwtInfo);
 
 			// set cookie with the jwt
@@ -54,7 +54,7 @@ export default async function userRoutes(server: FastifyInstance) {
 				path: '/', // => cookie sent with every request
 				httpOnly: true,
 				secure: true,
-				maxAge: 86400,
+				maxAge: 86400, // 1 day
 			});
 
 			// reply includes token
@@ -103,7 +103,6 @@ export default async function userRoutes(server: FastifyInstance) {
 	});
 
 	// GET user by ID
-	// @ts-ignore
 	server.get('/users/:id', { preHandler: [server.authenticate] }, async (request, reply) => {
 		const { id } = request.params as { id: string };
 
@@ -141,7 +140,6 @@ export default async function userRoutes(server: FastifyInstance) {
 	});
 
 	// PUT update user
-	// @ts-ignore
 	server.put('/users/:id', { preHandler: [server.authenticate_self] }, async (request, reply) => {
 		const { id } = request.params as { id: string };
 		const user: User = request.body as User;
@@ -175,7 +173,6 @@ export default async function userRoutes(server: FastifyInstance) {
 	});
 
 	// DELETE user
-	// @ts-ignore
 	server.delete('/users/:id', { preHandler: [server.authenticate_self] }, async (request, reply) => {
 		const { id } = request.params as { id: string };
 
