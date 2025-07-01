@@ -44,7 +44,7 @@ export default async function productRoutes(server: FastifyInstance) {
 	});
 
 	// POST (create) a product
-	server.post('/products', async (request, reply) => {
+	server.post('/products', { preHandler: [server.authenticate_admin] }, async (request, reply) => {
 		const product: Product = request.body as Product;
 		try {
 			const newProduct: Product = await createProduct(product);
@@ -55,7 +55,7 @@ export default async function productRoutes(server: FastifyInstance) {
 	});
 
 	// PUT (update) a product
-	server.put('/products/:id', async (request, reply) => {
+	server.put('/products/:id', { preHandler: [server.authenticate_admin] }, async (request, reply) => {
 		const { id } = request.params as { id: string };
 		const productToUpdate: Partial<Product> = request.body as Partial<Product>;
 
@@ -76,7 +76,7 @@ export default async function productRoutes(server: FastifyInstance) {
 	});
 
 	// DELETE product
-	server.delete('/products/:id', async (request, reply) => {
+	server.delete('/products/:id', { preHandler: [server.authenticate_admin] }, async (request, reply) => {
 		const { id } = request.params as { id: string };
 		try {
 			const deleted = await deleteProduct(id);

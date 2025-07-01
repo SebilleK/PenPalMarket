@@ -72,6 +72,23 @@ server.decorate('authenticate_self', async (req: FastifyRequest, reply: FastifyR
 	req.user = decoded;
 });
 
+//? LEVEL 3 - AUTHENTICATED AND ADMIN USER
+server.decorate('authenticate_admin', async (req: FastifyRequest, reply: FastifyReply) => {
+	const token = req.cookies.access_token;
+
+	if (!token) {
+		throw new UnauthorizedError('Please login for access.');
+	}
+
+	const decoded = req.jwt.verify<FastifyJWT['user']>(token);
+
+	if (decoded.role != 'admin') {
+		throw new ForbiddenError('User is not an administrator.');
+	}
+
+	req.user = decoded;
+});
+
 server.addHook('preHandler', (req, res, next) => {
 	//! FIX LATER, STRICTER TYPING
 

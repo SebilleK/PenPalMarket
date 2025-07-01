@@ -10,6 +10,7 @@ declare module 'fastify' {
 	export interface FastifyInstance {
 		authenticate: any;
 		authenticate_self: any;
+		authenticate_admin: any;
 	}
 }
 
