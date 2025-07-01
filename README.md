@@ -176,6 +176,15 @@ afterEach(async () => {
 }
 ```
 
+**Test Admin User:**
+
+```
+{
+	"email": "test@admin.com",
+	"password": "TestPassword2#",
+}
+```
+
 ## Database
 
 We're using a MySQL database and **MySQL2**, a modern and lightweight library, to interact with it.
