@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { getAllProducts, getProductById, getProductByName, createProduct, updateProduct, deleteProduct } from './productService';
 import { Product } from './ProductTypes';
+import { BadRequestError, UnauthorizedError } from '../../errors/customErrors';
 
 export default async function productRoutes(server: FastifyInstance) {
 	// GET all products
@@ -9,6 +10,13 @@ export default async function productRoutes(server: FastifyInstance) {
 			const products: Product[] = await getAllProducts();
 			return products;
 		} catch (error) {
+			if (error instanceof BadRequestError) {
+				return reply.status(400).send({
+					message: 'Bad Request',
+					error: error.message,
+				});
+			}
+
 			reply.status(500).send({ message: 'Error fetching products' });
 		}
 	});
@@ -24,6 +32,13 @@ export default async function productRoutes(server: FastifyInstance) {
 				return product;
 			}
 		} catch (error) {
+			if (error instanceof BadRequestError) {
+				return reply.status(400).send({
+					message: 'Bad Request',
+					error: error.message,
+				});
+			}
+
 			reply.status(500).send({ message: 'Error fetching product', error: error });
 		}
 	});
@@ -39,6 +54,13 @@ export default async function productRoutes(server: FastifyInstance) {
 				return products;
 			}
 		} catch (error) {
+			if (error instanceof BadRequestError) {
+				return reply.status(400).send({
+					message: 'Bad Request',
+					error: error.message,
+				});
+			}
+
 			reply.status(500).send({ message: 'Error fetching products by name' });
 		}
 	});
@@ -50,6 +72,20 @@ export default async function productRoutes(server: FastifyInstance) {
 			const newProduct: Product = await createProduct(product);
 			reply.status(201).send(newProduct);
 		} catch (error) {
+			if (error instanceof BadRequestError) {
+				return reply.status(400).send({
+					message: 'Bad Request',
+					error: error.message,
+				});
+			}
+
+			if (error instanceof UnauthorizedError) {
+				return reply.status(401).send({
+					message: 'Unauthorized',
+					error: error.message,
+				});
+			}
+
 			reply.status(500).send({ message: 'Error creating product' });
 		}
 	});
@@ -71,6 +107,19 @@ export default async function productRoutes(server: FastifyInstance) {
 				reply.send(updatedProduct);
 			}
 		} catch (error) {
+			if (error instanceof BadRequestError) {
+				return reply.status(400).send({
+					message: 'Bad Request',
+					error: error.message,
+				});
+			}
+
+			if (error instanceof UnauthorizedError) {
+				return reply.status(401).send({
+					message: 'Unauthorized',
+					error: error.message,
+				});
+			}
 			reply.status(500).send({ message: 'Error updating product' });
 		}
 	});
@@ -86,6 +135,19 @@ export default async function productRoutes(server: FastifyInstance) {
 				reply.status(404).send({ message: 'Product not found in database' });
 			}
 		} catch (error) {
+			if (error instanceof BadRequestError) {
+				return reply.status(400).send({
+					message: 'Bad Request',
+					error: error.message,
+				});
+			}
+
+			if (error instanceof UnauthorizedError) {
+				return reply.status(401).send({
+					message: 'Unauthorized',
+					error: error.message,
+				});
+			}
 			reply.status(500).send({ message: 'Error deleting product' });
 		}
 	});

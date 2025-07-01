@@ -104,6 +104,29 @@ describe('Product Routes', () => {
 			assert.deepStrictEqual(responseLogout.statusCode, 200);
 		});
 
+		it('wont create a product without all the needed fields', async () => {
+			const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@admin.com', password: 'TestPassword2#' } });
+			// AUTH COOKIE / JWT
+			const parsedJSON = JSON.parse(response.body);
+			const setJWT = parsedJSON.accessToken;
+
+			const responsePOST = await server.inject({
+				method: 'POST',
+				path: '/products',
+				payload: {
+					description: 'A new, special edition pen',
+					category: 'Premium',
+					stock: 20,
+				},
+				headers: { cookie: `access_token=${setJWT}` },
+			});
+
+			assert.deepStrictEqual(responsePOST.statusCode, 400);
+
+			const responseLogout = await server.inject({ method: 'POST', path: '/logout' });
+			assert.deepStrictEqual(responseLogout.statusCode, 200);
+		});
+
 		// UPDATE PRODUCT
 		it('updates a product', async () => {
 			const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@admin.com', password: 'TestPassword2#' } });
