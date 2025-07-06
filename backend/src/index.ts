@@ -1,4 +1,4 @@
-import server from './app'; 
+import server from './app';
 
 const start = async () => {
 	try {

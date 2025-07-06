@@ -31,6 +31,12 @@ server.register(fjwt, {
 	},
 });
 
+// SWAGGER - auto generating docs
+server.register(import('@fastify/swagger'));
+server.register(import('@fastify/swagger-ui'), {
+	routePrefix: '/docs',
+});
+
 // preHandlers / AUTH checks
 //? LEVEL 1 - AUTHENTICATED / LOGGED IN
 server.decorate('authenticate', async (req: FastifyRequest, reply: FastifyReply) => {
@@ -107,7 +113,7 @@ server.register(productRoutes);
 server.register(userRoutes);
 
 server.get('/', () => {
-	return 'Hello from PenPal Market API! Please see the docs for all available routes.';
+	return `Hello from PenPal Market API! Please head over to /docs for all available routes.`;
 });
 
 export default server;
