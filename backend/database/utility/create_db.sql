@@ -67,7 +67,8 @@ CREATE TABLE `orders` (
   `order_status` varchar(50) DEFAULT 'pending',
   `payment_status` varchar(50) DEFAULT 'pending',
   `paid_at` timestamp NULL,
-  `payment_method` varchar(50)
+  `payment_method` varchar(50),
+  `snapshot_address` varchar(500)
 );
 
 CREATE TABLE `order_items` (

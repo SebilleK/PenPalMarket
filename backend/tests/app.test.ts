@@ -9,6 +9,7 @@ import mockProducts from '../database/json_mocks/mockProducts.json';
 import mockUser from '../database/json_mocks/mockUser.json';
 import mockBadUser from '../database/json_mocks/mockBadUser.json';
 import mockUserUpdate from '../database/json_mocks/mockUserUpdate.json';
+import mockAddress from '../database/json_mocks/mockAddress.json';
 
 //! setup for isolation, rollback
 import { startTransaction, rollbackTransaction, seedTestUser } from './testHelpers';
@@ -243,6 +244,99 @@ describe('Users Routes', () => {
 
 			const responseLogout = await server.inject({ method: 'POST', path: '/logout' });
 			assert.deepStrictEqual(responseLogout.statusCode, 200);
+		});
+
+		describe('TEMPORARY: SHOPPING CART, ADDRESSES AND ORDERS', () => {
+			//? SETTING ADDRESSES
+			it('user can set an address', async () => {
+				const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
+				// AUTH COOKIE / JWT
+				const parsedJSON = JSON.parse(response.body);
+				const setJWT = parsedJSON.accessToken;
+
+				const id = 1;
+				// dont forget this is user address id!
+				const responsePOST = await server.inject({ method: 'POST', path: `/address/${id}`, body: mockAddress, headers: { cookie: `access_token=${setJWT.toString()}` } });
+
+				assert.deepStrictEqual(responsePOST.statusCode, 200);
+			});
+
+			it('user can update an address', async () => {
+				const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
+				// AUTH COOKIE / JWT
+				const parsedJSON = JSON.parse(response.body);
+				const setJWT = parsedJSON.accessToken;
+
+				const id = 1;
+				const responsePUT = await server.inject({ method: 'PUT', path: `/address/${id}`, body: mockAddress, headers: { cookie: `access_token=${setJWT.toString()}` } });
+
+				assert.deepStrictEqual(responsePUT.statusCode, 200);
+			});
+
+			it('user can delete an address', async () => {
+				const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
+				// AUTH COOKIE / JWT
+				const parsedJSON = JSON.parse(response.body);
+				const setJWT = parsedJSON.accessToken;
+
+				const id = 1;
+				const responseDELETE = await server.inject({ method: 'DELETE', path: `/address/${id}`, body: mockAddress, headers: { cookie: `access_token=${setJWT.toString()}` } });
+
+				assert.deepStrictEqual(responseDELETE.statusCode, 200);
+			});
+
+			//? SHOPPING CART
+			// this one below creates a shopping cart, and then creates a shopping cart item that is correspondant to the actual item added
+			it('user can add items to cart', async () => {
+				const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
+				// AUTH COOKIE / JWT
+				const parsedJSON = JSON.parse(response.body);
+				const setJWT = parsedJSON.accessToken;
+
+				const id = 1;
+				//product_id of the item // CHANGE BODY??AOIDHA
+				const responsePOST = await server.inject({ method: 'POST', path: `/cart/${id}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
+
+				assert.deepStrictEqual(responsePOST.statusCode, 200);
+			});
+
+			//! DO DELETION, AND UPDATING QUANTITIES LATER
+
+			it('user can place an order', async () => {
+				const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
+				// AUTH COOKIE / JWT
+				const parsedJSON = JSON.parse(response.body);
+				const setJWT = parsedJSON.accessToken;
+
+				const id = 1;
+				const responsePOST = await server.inject({ method: 'POST', path: `/users/${id}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
+
+				assert.deepStrictEqual(responsePOST.statusCode, 200);
+			});
+
+			it('user cant place an order without an address', async () => {
+				const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
+				// AUTH COOKIE / JWT
+				const parsedJSON = JSON.parse(response.body);
+				const setJWT = parsedJSON.accessToken;
+
+				const id = 1;
+				const responsePOST = await server.inject({ method: 'POST', path: `/users/${id}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
+
+				assert.deepStrictEqual(responsePOST.statusCode, 400);
+			});
+
+			it('user cant place an order without items on cart', async () => {
+				const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
+				// AUTH COOKIE / JWT
+				const parsedJSON = JSON.parse(response.body);
+				const setJWT = parsedJSON.accessToken;
+
+				const id = 1;
+				const responsePOST = await server.inject({ method: 'POST', path: `/users/${id}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
+
+				assert.deepStrictEqual(responsePOST.statusCode, 400);
+			});
 		});
 	});
 });
