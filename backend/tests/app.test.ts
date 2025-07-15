@@ -5,11 +5,12 @@ import assert from 'node:assert';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 // mock products
 import mockProducts from '../database/json_mocks/mockProducts.json';
-// mock users
+// mock data
 import mockUser from '../database/json_mocks/mockUser.json';
 import mockBadUser from '../database/json_mocks/mockBadUser.json';
 import mockUserUpdate from '../database/json_mocks/mockUserUpdate.json';
 import mockAddress from '../database/json_mocks/mockAddress.json';
+import mockUpdateAddress from '../database/json_mocks/mockUpdateAddress.json';
 
 //! setup for isolation, rollback
 import { startTransaction, rollbackTransaction, seedTestUser } from './testHelpers';
@@ -248,41 +249,32 @@ describe('Users Routes', () => {
 
 		describe('TEMPORARY: SHOPPING CART, ADDRESSES AND ORDERS', () => {
 			//? SETTING ADDRESSES
-			it('user can set an address', async () => {
+			it('user can correctly create/set an address and update it or delete it', async () => {
 				const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
 				// AUTH COOKIE / JWT
 				const parsedJSON = JSON.parse(response.body);
 				const setJWT = parsedJSON.accessToken;
 
-				const id = 1;
-				// dont forget this is user address id!
-				const responsePOST = await server.inject({ method: 'POST', path: `/address/${id}`, body: mockAddress, headers: { cookie: `access_token=${setJWT.toString()}` } });
-
-				assert.deepStrictEqual(responsePOST.statusCode, 200);
-			});
-
-			it('user can update an address', async () => {
-				const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
-				// AUTH COOKIE / JWT
-				const parsedJSON = JSON.parse(response.body);
-				const setJWT = parsedJSON.accessToken;
+				assert.deepStrictEqual(response.statusCode, 200);
+				console.log('login success');
 
 				const id = 1;
-				const responsePUT = await server.inject({ method: 'PUT', path: `/address/${id}`, body: mockAddress, headers: { cookie: `access_token=${setJWT.toString()}` } });
+				const responsePOST = await server.inject({ method: 'POST', path: `/users/addresses/${id}`, body: mockAddress, headers: { cookie: `access_token=${setJWT}` } });
+
+				assert.deepStrictEqual(responsePOST.statusCode, 201);
+				console.log('address set with success');
+
+				//! should provide address id for update and delete requests
+				//? problem- rollback? can i not rollback?
+				const responsePUT = await server.inject({ method: 'PUT', path: `/users/addresses/${id}`, body: mockUpdateAddress, headers: { cookie: `access_token=${setJWT.toString()}` } });
+
+				console.log(responsePUT);
 
 				assert.deepStrictEqual(responsePUT.statusCode, 200);
-			});
 
-			it('user can delete an address', async () => {
-				const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
-				// AUTH COOKIE / JWT
-				const parsedJSON = JSON.parse(response.body);
-				const setJWT = parsedJSON.accessToken;
+				const responseDELETE = await server.inject({ method: 'DELETE', path: `/address/${id}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
 
-				const id = 1;
-				const responseDELETE = await server.inject({ method: 'DELETE', path: `/address/${id}`, body: mockAddress, headers: { cookie: `access_token=${setJWT.toString()}` } });
-
-				assert.deepStrictEqual(responseDELETE.statusCode, 200);
+				assert.deepStrictEqual(responseDELETE.statusCode, 204);
 			});
 
 			//? SHOPPING CART
@@ -301,7 +293,6 @@ describe('Users Routes', () => {
 			});
 
 			//! DO DELETION, AND UPDATING QUANTITIES LATER
-
 			it('user can place an order', async () => {
 				const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
 				// AUTH COOKIE / JWT

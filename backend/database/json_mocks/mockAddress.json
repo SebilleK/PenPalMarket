@@ -1,1 +1,8 @@
-{}
+{
+	"address_line1": "The biggest avenue on the country",
+	"address_line2": "N12 3A",
+	"city": "Best City",
+	"state": "Test City State",
+	"country": "Portugal",
+	"postal_code": "2000-100"
+}
