@@ -141,7 +141,11 @@ To run tests:
 **make sure you are in the backend directory and your database is seeded with fresh data**
 
 ```bash
-npm run test
+npm run test # all tests
+# tests by groups
+npm run test users
+npm run test products
+# TBA --
 ```
 
 To drop the database, re-create it and seed with fresh data again use the query:
