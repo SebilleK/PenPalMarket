@@ -256,7 +256,6 @@ export const deleteUser = async (id: string): Promise<boolean> => {
 };
 
 //? USER ADDRESSES
-//! fix types later, return a set type not any
 // GET address
 export const getAddressesByUserId = async (id: string): Promise<any> => {
 	const sql = 'SELECT * FROM user_addresses WHERE user_id =?';
@@ -279,7 +278,6 @@ export const getAddressesByUserId = async (id: string): Promise<any> => {
 	}
 };
 
-//! TBA
 // POST address
 export const addAddressByUserId = async (id: string, address: Address): Promise<Address> => {
 	if (id == undefined) {
@@ -305,6 +303,7 @@ export const addAddressByUserId = async (id: string, address: Address): Promise<
 
 		const newAddress: any = {
 			...address,
+			user_address_id: result.insertId.toString(),
 		};
 
 		return newAddress;

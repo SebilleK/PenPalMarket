@@ -283,13 +283,14 @@ export default async function userRoutes(server: FastifyInstance) {
 	});
 
 	//! provide address id
+	//? the first id needs to be the user for auth purposes
 	// PUT update address
-	server.put('/users/addresses/:id', { preHandler: [server.authenticate_self] }, async (request, reply) => {
-		const { id } = request.params as { id: string };
+	server.put('/users/:id/addresses/:address_id', { preHandler: [server.authenticate_self] }, async (request, reply) => {
+		const { address_id } = request.params as { address_id: string };
 		const address: Address = request.body as Address;
 
 		try {
-			const updatedAddress = await updateAddressByAddressId(id, address);
+			const updatedAddress = await updateAddressByAddressId(address_id, address);
 
 			reply.status(200).send({ message: 'Request successful', updatedAddress });
 		} catch (error: unknown) {
@@ -318,12 +319,13 @@ export default async function userRoutes(server: FastifyInstance) {
 	});
 
 	//! provide address id
+	//? the first id needs to be the user for auth purposes
 	// DELETE address
-	server.delete('/users/addresses/:id', { preHandler: [server.authenticate_self] }, async (request, reply) => {
-		const { id } = request.params as { id: string };
+	server.delete('/users/:id/addresses/:address_id', { preHandler: [server.authenticate_self] }, async (request, reply) => {
+		const { address_id } = request.params as { address_id: string };
 
 		try {
-			const deleted = await deleteAddressByAddressId(id);
+			const deleted = await deleteAddressByAddressId(address_id);
 
 			if (deleted) {
 				reply.status(204).send({ message: 'Request successful, address deleted.', deleted });
