@@ -63,12 +63,13 @@ CREATE TABLE `orders` (
   `user_id` integer NOT NULL,
   `cart_id` integer NOT NULL,
   `total_amount` decimal(10,2) NOT NULL,
-  `shipping_address` integer NOT NULL,
-  `billing_address` integer NOT NULL,
+  `shipping_address_id` integer NOT NULL,
+  `billing_address_id` integer NOT NULL,
   `order_status` varchar(50) DEFAULT 'pending',
   `payment_status` varchar(50) DEFAULT 'pending',
   `paid_at` timestamp NULL,
-  `payment_method` varchar(50)
+  `payment_method` varchar(50),
+  `snapshot_address` varchar(500)
 );
 
 CREATE TABLE `order_items` (

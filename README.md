@@ -28,11 +28,11 @@ cd backend
 npm run start-ts
 ```
 
-### Backend
-
 ---
 
-#### Database Setup
+## Backend
+
+### Database Setup
 
 There needs to be a **database setup** for this project. You can set it up / manage it with whatever software as you prefer, but below are some steps. To follow them, make sure you have downloaded and installed [MySQL](https://dev.mysql.com/downloads/installer/).
 
@@ -89,7 +89,7 @@ npm run build
 npm run start
 ```
 
-## JWT and Authentication
+### JWT and Authentication
 
 Some routes are protected. You need to be logged in, and have a valid access token (JWT). We're using the official plugins _@fastify/jwt_ to generate and verify JWT and _@fastify/cookie_ to read and set cookies. We're also using a Fastify preHandler hook (that runs before the actual route).
 
@@ -99,11 +99,13 @@ Make sure to set a **JWT secret** and a **Cookies secret** in your **environment
 
 This article was a very nice help, especially with Typescript: https://medium.com/@atatijr/token-based-authentication-with-fastify-jwt-and-typescript-1fa5cccc63c5
 
-### Protected Routes
+#### Protected Routes
+
+**WIP**
 
 These are the routes that need a valid access token / bearer token, and where we use the preHandler hook to check it.
 
-There are 2 authentication levels: authenticate and authenticate_self. While the first needs the user to only be logged in, the second demands that the id present in the request (for example, to delete a user, the user id sent with the route) matches the id present in the decoded jwt that's in the access_token cookie. Check implementation in \_app.ts\*.
+There are **currently** 2 authentication levels: authenticate and authenticate_self. While the first needs the user to only be logged in, the second demands that the id present in the request (for example, to delete a user, the user id sent with the route) matches the id present in the decoded jwt that's in the access_token cookie. Check implementation in \_app.ts\*.
 
 _Admin only authentication level TBA._
 
@@ -121,19 +123,7 @@ if (decoded.id != id) {
 }
 ```
 
-#### General Access Routes
-
-_TBA_
-
-#### Level 1 Routes
-
-_TBA_
-
-#### Level 2 Routes
-
-_TBA_
-
-## Tests
+### Tests
 
 We utilize Fastify's built-in testing method, [inject()](https://fastify.dev/docs/v1.14.x/Documentation/Testing/) — which injects fake http requests, along with Node's native assertion and testing modules, to validate our backend API. We intend to use a TDD approach where we write tests before the actual implementation, refactoring as needed.
 
@@ -141,16 +131,21 @@ To run tests:
 **make sure you are in the backend directory and your database is seeded with fresh data**
 
 ```bash
-npm run test
+npm run test # all tests
+# tests by groups
+npm run test_users
+npm run test_products
+npm run test_orders
+# TBA --
 ```
 
-To drop the database, re-create it and seed with fresh data again use the query:
+To drop the database, re-create it and seed with fresh data again, you can use the query present in:
 database/utility/**fresh_db.sql**
-(or do it manually)
+_(or do it manually)_
 
-On _database/json_mocks_ you can find some useful json with example values to create/update a user or product, etc:.
+On _database/json_mocks_ you can find some useful json with example values to create/update a user or product, etc:. These are used on the tests, but can also be used for practicality for testing endpoints manually using a tool like Postman, etc:.
 
-**Isolation**
+#### Isolation
 
 When NODE_ENV=test, the database connection is different. Check \_database/testConnection.ts\*. Before each test, we do a database transaction to isolate it. Then, we rollback that change. This way, each test is independent.
 
@@ -167,6 +162,8 @@ afterEach(async () => {
 });
 ```
 
+We also seed a test user. **Check _tests/testHelpers.ts_.**
+
 **Test User:**
 
 ```
@@ -176,16 +173,7 @@ afterEach(async () => {
 }
 ```
 
-**Test Admin User:**
-
-```
-{
-	"email": "test@admin.com",
-	"password": "TestPassword2#",
-}
-```
-
-## Database
+### Database
 
 We're using a MySQL database and **MySQL2**, a modern and lightweight library, to interact with it.
 
@@ -215,9 +203,9 @@ export const createProduct = async (product: Product): Promise<Product> => {
 Database Schema designed with https://dbdiagram.io/. Subject to changes.
 ![Database Schema](images/db_schema_first.png)
 
-## Project Structure
+### Project Structure
 
-### Folder Organization
+#### Folder Organization
 
 **backend**
 
@@ -233,7 +221,7 @@ backend/
 │ ├── .... # feature domains as needed
 │ └── app.ts # configuring the fastify instance, registering routes
 │ └── index.ts # starting the server
-├── tests # all needed tests for the endpoints
+├── tests # all needed tests for the endpoints and related utility
 ├── package.json
 └── tsconfig.json
 ```

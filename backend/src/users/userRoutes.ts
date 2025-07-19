@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 // import services later
-import { userRegister, userLogin, getUserById, updateUser, deleteUser, userLogout } from './userService';
-import { User } from './UserTypes';
+import { userRegister, userLogin, getUserById, updateUser, deleteUser, userLogout, getAddressesByUserId, addAddressByUserId, updateAddressByAddressId, deleteAddressByAddressId } from './userService';
+import { User, Address } from './UserTypes';
 import { BadRequestError, UnauthorizedError } from '../../errors/customErrors';
 import { userLoginSchema, userRouteSchema } from './userSchemas';
 
@@ -263,4 +263,152 @@ export default async function userRoutes(server: FastifyInstance) {
 			}
 		},
 	);
+
+	//? USER ADDRESSES
+
+	// GET address
+	server.get('/users/addresses/:id', { preHandler: [server.authenticate_self] }, async (request, reply) => {
+		const { id } = request.params as { id: string };
+
+		try {
+			const requestedAdresses = await getAddressesByUserId(id);
+
+			if (requestedAdresses === null) {
+				reply.status(200).send({ message: 'Request successful, but no addresses were found' });
+			} else {
+				reply.status(200).send({ message: 'Request successful', requestedAdresses });
+			}
+		} catch (error: unknown) {
+			const e = error as Error;
+
+			if (error instanceof BadRequestError) {
+				return reply.status(400).send({
+					message: 'Bad Request',
+					error: e.message,
+				});
+			}
+
+			if (error instanceof UnauthorizedError) {
+				return reply.status(401).send({
+					message: 'Unauthorized',
+					error: e.message,
+				});
+			}
+
+			// default
+			return reply.status(500).send({
+				message: 'Error trying to get user addresses',
+				error: e.message,
+			});
+		}
+	});
+
+	// POST address
+	server.post('/users/addresses/:id', { preHandler: [server.authenticate_self] }, async (request, reply) => {
+		const { id } = request.params as { id: string };
+		const address: Address = request.body as Address;
+
+		try {
+			const newAddress = await addAddressByUserId(id, address);
+
+			reply.status(201).send({ message: 'Request successful', newAddress });
+		} catch (error: unknown) {
+			const e = error as Error;
+
+			if (error instanceof BadRequestError) {
+				return reply.status(400).send({
+					message: 'Bad Request',
+					error: e.message,
+				});
+			}
+
+			if (error instanceof UnauthorizedError) {
+				return reply.status(401).send({
+					message: 'Unauthorized',
+					error: e.message,
+				});
+			}
+
+			// default
+			return reply.status(500).send({
+				message: 'Error trying to post new user address',
+				error: e.message,
+			});
+		}
+	});
+
+	//! provide address id
+	//? the first id needs to be the user for auth purposes
+	// PUT update address
+	server.put('/users/:id/addresses/:address_id', { preHandler: [server.authenticate_self] }, async (request, reply) => {
+		const { address_id } = request.params as { address_id: string };
+		const address: Address = request.body as Address;
+
+		try {
+			const updatedAddress = await updateAddressByAddressId(address_id, address);
+
+			reply.status(200).send({ message: 'Request successful', updatedAddress });
+		} catch (error: unknown) {
+			const e = error as Error;
+
+			if (error instanceof BadRequestError) {
+				return reply.status(400).send({
+					message: 'Bad Request',
+					error: e.message,
+				});
+			}
+
+			if (error instanceof UnauthorizedError) {
+				return reply.status(401).send({
+					message: 'Unauthorized',
+					error: e.message,
+				});
+			}
+
+			// default
+			return reply.status(500).send({
+				message: 'Error trying to update user addresses',
+				error: e.message,
+			});
+		}
+	});
+
+	//! provide address id
+	//? the first id needs to be the user for auth purposes
+	// DELETE address
+	server.delete('/users/:id/addresses/:address_id', { preHandler: [server.authenticate_self] }, async (request, reply) => {
+		const { address_id } = request.params as { address_id: string };
+
+		try {
+			const deleted = await deleteAddressByAddressId(address_id);
+
+			if (deleted) {
+				reply.status(204).send({ message: 'Request successful, address deleted.', deleted });
+			} else {
+				reply.status(404).send({ message: 'Request successful, but no address found to delete.', deleted });
+			}
+		} catch (error: unknown) {
+			const e = error as Error;
+
+			if (error instanceof BadRequestError) {
+				return reply.status(400).send({
+					message: 'Bad Request',
+					error: e.message,
+				});
+			}
+
+			if (error instanceof UnauthorizedError) {
+				return reply.status(401).send({
+					message: 'Unauthorized',
+					error: e.message,
+				});
+			}
+
+			// default
+			return reply.status(500).send({
+				message: 'Error trying to delete user addresses',
+				error: e.message,
+			});
+		}
+	});
 }

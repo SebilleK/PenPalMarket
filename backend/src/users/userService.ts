@@ -1,4 +1,4 @@
-import { User } from './UserTypes';
+import { User, Address } from './UserTypes';
 import connection from '../../database/dbConnection';
 import { ResultSetHeader } from 'mysql2';
 import { hashPassword, verifyPassword } from '../../utils/hash';
@@ -252,5 +252,158 @@ export const deleteUser = async (id: string): Promise<boolean> => {
 		return result.affectedRows > 0;
 	} catch (err) {
 		throw new Error(`Error deleting user with ID ${id}: ${err}`);
+	}
+};
+
+//? USER ADDRESSES
+// GET address
+export const getAddressesByUserId = async (id: string): Promise<any> => {
+	const sql = 'SELECT * FROM user_addresses WHERE user_id =?';
+
+	if (!id) {
+		throw new BadRequestError('Please provide an user ID.');
+	}
+
+	try {
+		const [rows] = await connection.promise().query(sql, [id]);
+		if (Array.isArray(rows) && rows.length > 0) {
+			const addresses = rows;
+
+			return addresses;
+		} else {
+			return null;
+		}
+	} catch (err) {
+		throw new Error(`Error fetching addresses of User ID ${id}: ${err}`);
+	}
+};
+
+// POST address
+export const addAddressByUserId = async (id: string, address: Address): Promise<Address> => {
+	if (id == undefined) {
+		throw new BadRequestError('Please provide the ID of the user to add an address.');
+	}
+
+	const user_id = id;
+
+	const { address_line1, address_line2, city, state, country, postal_code } = address;
+
+	if (!address_line1 || !address_line2 || !city || !state || !country || !postal_code) {
+		throw new BadRequestError('All required fields must be provided.');
+	}
+
+	const sql = `
+        INSERT INTO user_addresses 
+        (user_id, address_line1, address_line2, city, state, country, postal_code) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+
+	try {
+		const [result] = await connection.promise().query<ResultSetHeader>(sql, [user_id, address_line1, address_line2, city, state, country, postal_code]);
+
+		const newAddress: any = {
+			...address,
+			user_address_id: result.insertId.toString(),
+		};
+
+		return newAddress;
+	} catch (error) {
+		throw new Error(`Error while trying to register new user: ${error}`);
+	}
+};
+
+// UPDATE (put) address //! provide address id
+export const updateAddressByAddressId = async (id: string, address: Address): Promise<any> => {
+	if (id == undefined) {
+		throw new BadRequestError('Please provide the ID of the user to update an address.');
+	}
+
+	const user_address_id = id;
+
+	const { address_line1, address_line2, city, state, country, postal_code } = address;
+
+	//? fields and values for SQL
+	const fields: string[] = [];
+	const values: string[] = [];
+
+	//! ___________
+	if (!address_line1 && !address_line2 && !city && !state && !country && !postal_code) {
+		throw new BadRequestError('At least a field to update needs to be provided.');
+	}
+
+	//? dynamically preparing SQL statement
+
+	if (address_line1 !== undefined) {
+		fields.push('address_line1 = ?');
+		values.push(address_line1);
+	}
+
+	if (address_line2 !== undefined) {
+		fields.push('address_line2 = ?');
+		values.push(address_line2);
+	}
+
+	if (city !== undefined) {
+		fields.push('city = ?');
+		values.push(city);
+	}
+
+	if (state !== undefined) {
+		fields.push('state  = ?');
+		values.push(state);
+	}
+
+	if (country !== undefined) {
+		fields.push('country = ?');
+		values.push(country);
+	}
+
+	if (postal_code !== undefined) {
+		fields.push('postal_code = ?');
+		values.push(postal_code);
+	}
+
+	//!_______________
+
+	values.push(user_address_id);
+
+	//? dinamically building SQL according to provided fields. Allows partial updates and avoids errors/ wiping info
+	const sql = `UPDATE user_addresses SET ${fields.join(', ')} WHERE user_address_id = ?`;
+
+	try {
+		const [rows] = await connection.promise().query<ResultSetHeader>(sql, values);
+
+		if (rows.affectedRows === 0) {
+			throw new NotFoundError('No address found to update!');
+		}
+
+		// return the full new updated user address
+		const refetchSql = 'SELECT * FROM user_addresses WHERE user_address_id =?';
+
+		const [refetch] = await connection.promise().query(refetchSql, [user_address_id]);
+
+		if (Array.isArray(refetch) && refetch.length > 0) {
+			const updatedAddress = refetch[0] as any;
+
+			return updatedAddress;
+		} else {
+			throw new Error('Update ocurred but it was impossible to refetch the user address from the database.');
+		}
+	} catch (err) {
+		throw new Error(`Error updating address with ID ${user_address_id}: ${err}`);
+	}
+};
+
+// DELETE address //! provide address id
+export const deleteAddressByAddressId = async (id: string): Promise<boolean> => {
+	const sql = 'DELETE FROM user_addresses WHERE user_address_id = ?';
+
+	try {
+		const [result] = await connection.promise().query<ResultSetHeader>(sql, [id]);
+
+		// returning boolean according to delete
+		return result.affectedRows > 0;
+	} catch (err) {
+		throw new Error(`Error deleting address with ID ${id}: ${err}`);
 	}
 };

@@ -2,6 +2,7 @@ import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
 // routes
 import productRoutes from './products/productRoutes';
 import userRoutes from './users/userRoutes';
+import orderRoutes from './orders/orderRoutes';
 // jwt and cookies
 import fjwt, { FastifyJWT } from '@fastify/jwt';
 import fCookie from '@fastify/cookie';
@@ -111,6 +112,7 @@ server.register(fCookie, {
 // register routes
 server.register(productRoutes);
 server.register(userRoutes);
+server.register(orderRoutes);
 
 server.get('/', () => {
 	return `Hello from PenPal Market API! Please head over to /docs for all available routes.`;
