@@ -16,7 +16,7 @@ afterEach(async () => {
 	await rollbackTransaction();
 });
 
-describe('TEMPORARY: SHOPPING CART AND ORDERS', () => {
+describe('Shopping Cart and Orders', () => {
 	//? SHOPPING CART
 	// this one below creates a shopping cart, and then creates a shopping cart item that is correspondant to the actual item added
 	it('user can add items to cart', async () => {
