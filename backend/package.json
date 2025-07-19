@@ -8,8 +8,9 @@
 		"build": "tsc -p tsconfig.json",
 		"start": "node build/index.js",
 		"test": "ts-node tests/app.test.ts",
-		"test users": "ts-node tests/user.test.ts",
-		"test products": "ts-node tests/products.test.ts"
+		"test_users": "ts-node tests/user.test.ts",
+		"test_products": "ts-node tests/products.test.ts",
+		"test_orders": "ts-node tests/orders.test.ts"
 	},
 	"author": "",
 	"license": "ISC",

@@ -19,7 +19,7 @@ afterEach(async () => {
 describe('Shopping Cart and Orders', () => {
 	//? SHOPPING CART
 	// this one below creates a shopping cart, and then creates a shopping cart item that is correspondant to the actual item added
-	it('user can add items to cart', async () => {
+	it('can create a cart', async () => {
 		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
 		// AUTH COOKIE / JWT
 		const parsedJSON = JSON.parse(response.body);
@@ -29,43 +29,37 @@ describe('Shopping Cart and Orders', () => {
 		//product_id of the item // CHANGE BODY??AOIDHA
 		const responsePOST = await server.inject({ method: 'POST', path: `/cart/${id}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
 
-		assert.deepStrictEqual(responsePOST.statusCode, 200);
+		assert.deepStrictEqual(responsePOST.statusCode, 201);
 	});
 
-	//! DO DELETION, AND UPDATING QUANTITIES LATER
+	// TBA
+	it('can delete a cart', async () => {
+		const response = 'fail';
+		assert.deepStrictEqual(response, 'notfail');
+	});
+
+	it('can add item to a cart', async () => {
+		const response = 'fail';
+		assert.deepStrictEqual(response, 'notfail');
+	});
+
+	it('can remove item from cart', async () => {
+		const response = 'fail';
+		assert.deepStrictEqual(response, 'notfail');
+	});
+
 	it('user can place an order', async () => {
-		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
-		// AUTH COOKIE / JWT
-		const parsedJSON = JSON.parse(response.body);
-		const setJWT = parsedJSON.accessToken;
-
-		const id = 1;
-		const responsePOST = await server.inject({ method: 'POST', path: `/users/${id}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
-
-		assert.deepStrictEqual(responsePOST.statusCode, 200);
+		const response = 'fail';
+		assert.deepStrictEqual(response, 'notfail');
 	});
 
 	it('user cant place an order without an address', async () => {
-		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
-		// AUTH COOKIE / JWT
-		const parsedJSON = JSON.parse(response.body);
-		const setJWT = parsedJSON.accessToken;
-
-		const id = 1;
-		const responsePOST = await server.inject({ method: 'POST', path: `/users/${id}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
-
-		assert.deepStrictEqual(responsePOST.statusCode, 400);
+		const response = 'fail';
+		assert.deepStrictEqual(response, 'notfail');
 	});
 
 	it('user cant place an order without items on cart', async () => {
-		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
-		// AUTH COOKIE / JWT
-		const parsedJSON = JSON.parse(response.body);
-		const setJWT = parsedJSON.accessToken;
-
-		const id = 1;
-		const responsePOST = await server.inject({ method: 'POST', path: `/users/${id}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
-
-		assert.deepStrictEqual(responsePOST.statusCode, 400);
+		const response = 'fail';
+		assert.deepStrictEqual(response, 'notfail');
 	});
 });
