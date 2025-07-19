@@ -99,7 +99,31 @@ Make sure to set a **JWT secret** and a **Cookies secret** in your **environment
 
 This article was a very nice help, especially with Typescript: https://medium.com/@atatijr/token-based-authentication-with-fastify-jwt-and-typescript-1fa5cccc63c5
 
-#### Protected Routes
+#### Routes
+
+We are using fastify-swagger to automatically generate documentation for all routes, by feature domain grouping. Example schemas are being added progressively.
+
+https://github.com/fastify/fastify-swagger
+
+```bash
+## Example | User Login | userRoutes.ts
+server.post(
+		'/login',
+		{
+			schema: {
+				tags: ['Users'],
+				body: userLoginSchema,
+			},
+		},
+		async (request, reply) => {
+			## ...
+		},
+	);
+```
+
+After starting the server, navigate over to http://HOST:PORT/docs to access the docs:
+
+![Route Docs](images/route_docs.png)
 
 **WIP**
 

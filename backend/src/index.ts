@@ -1,9 +1,14 @@
 import server from './app';
+import dotenv from 'dotenv';
+
+// loading env variables
+dotenv.config();
 
 const start = async () => {
 	try {
-		await server.listen({ port: 3000, host: '127.0.0.1' });
-		console.log('Server listening at http://127.0.0.1:3000');
+		// @ts-ignore
+		server.listen({ port: process.env.DB_PORT, host: process.env.DB_HOST });
+		console.log(`Server listening at http://${process.env.DB_HOST}:${process.env.DB_PORT}`);
 	} catch (err) {
 		server.log.error(err);
 		process.exit(1);
