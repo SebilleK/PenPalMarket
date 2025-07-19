@@ -93,13 +93,60 @@ npm run start
 
 Some routes are protected. You need to be logged in, and have a valid access token (JWT). We're using the official plugins _@fastify/jwt_ to generate and verify JWT and _@fastify/cookie_ to read and set cookies. We're also using a Fastify preHandler hook (that runs before the actual route).
 
-Check out _app.ts_ for the implementation. In users > _userRoutes.ts_ you can see the /login route, where after a successful login (check out _userService.ts_) we generate a valid token and set a cookie with it that will be sent with every request, and will be read when necessary.
+In users > _userRoutes.ts_ you can see the /login route, where after a successful login (check out _userService.ts_) that returns user data, we generate a valid token and set a cookie with this information that will be sent with every request, and will be read when necessary. Check out _app.ts_ and the **"Protected Routes"** section below for the implementation of authentication levels.
+
+```bash
+# In userRoutes.ts => /login
+const jwtInfo = {
+	id: user.user_id,
+	name: user.first_name + ' ' + user.last_name,
+	email: user.email,
+	role: user.role,
+};
+
+const jwtGenerator = request.jwt.sign(jwtInfo);
+
+# set cookie with the jwt
+reply.setCookie('access_token', jwtGenerator, {
+	path: '/', // # cookie sent with every request
+	httpOnly: true,
+	secure: true,
+	maxAge: 86400, # 1 day
+});
+```
 
 Make sure to set a **JWT secret** and a **Cookies secret** in your **environment variables**. Check out the file _.example-env_
 
 This article was a very nice help, especially with Typescript: https://medium.com/@atatijr/token-based-authentication-with-fastify-jwt-and-typescript-1fa5cccc63c5
 
-#### Routes
+#### Protected Routes
+
+**WIP**
+
+These are routes that need a valid access token / bearer token, and where we use the preHandler hook to check it.
+
+There are **currently** 3 authentication levels: authenticate, authenticate_self and authenticate_admin. While the first needs the user to only be logged in, the second demands that the id present in the request (for example, to delete a user, the user id sent with the route) matches the id present in the decoded jwt that's in the access_token cookie. Check implementation in \_app.ts\*. For the last level, the admin one, it allows users to have access to certain management routes (for example, creating a new product).
+
+```bash
+const { id } = req.params as { id: string };
+
+const token = req.cookies.access_token;
+
+# -- first level, "authenticate", user is logged in => has a valid token
+const decoded = req.jwt.verify<FastifyJWT['user']>(token);
+
+# second level, "authenticate_self", user is logged in and the resource specified in the route belongs to them
+if (decoded.id != id) {
+	throw new UnauthorizedError('Request ID and User ID mismatch.');
+}
+
+# third level, "authenticate_admin", user is logged in and is an admin => has access to all management routes
+if (decoded.role != 'admin') {
+		throw new ForbiddenError('User is not an administrator.');
+}
+```
+
+#### Documentation
 
 We are using fastify-swagger to automatically generate documentation for all routes, by feature domain grouping. Example schemas are being added progressively.
 
@@ -124,28 +171,6 @@ server.post(
 After starting the server, navigate over to http://HOST:PORT/docs to access the docs:
 
 ![Route Docs](images/route_docs.png)
-
-**WIP**
-
-These are the routes that need a valid access token / bearer token, and where we use the preHandler hook to check it.
-
-There are **currently** 2 authentication levels: authenticate and authenticate_self. While the first needs the user to only be logged in, the second demands that the id present in the request (for example, to delete a user, the user id sent with the route) matches the id present in the decoded jwt that's in the access_token cookie. Check implementation in \_app.ts\*.
-
-_Admin only authentication level TBA._
-
-```bash
-const { id } = req.params as { id: string };
-
-const token = req.cookies.access_token;
-
-// verify authenticity too!
-const decoded = req.jwt.verify<FastifyJWT['user']>(token);
-
-// second level, "authenticate_self"
-if (decoded.id != id) {
-	throw new UnauthorizedError('Request ID and User ID mismatch.');
-}
-```
 
 ### Tests
 
@@ -186,14 +211,23 @@ afterEach(async () => {
 });
 ```
 
-We also seed a test user. **Check _tests/testHelpers.ts_.**
+We also seed two users, one with normal the other with admin privileges. **Check _tests/testHelpers.ts_.**
 
-**Test User:**
+**Normal User:**
 
 ```
 {
 	"email": "test@user.com",
 	"password": "TestPassword1#",
+}
+```
+
+**Admin User:**
+
+```
+{
+	"email": "test@admin.com",
+	"password": "TestPassword2#",
 }
 ```
 
