@@ -6,6 +6,14 @@ DB_USER=
 DB_PASSWORD=
 DB_NAME=
 
+## Database Connection for testing
+
+TEST_DB_HOST=
+DB_PORT=
+DB_USER=
+DB_PASSWORD=
+DB_NAME=
+
 ## JWT and Cookies
 
 SECRET_JWT=

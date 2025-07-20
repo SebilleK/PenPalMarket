@@ -62,9 +62,15 @@ mysql -u root -p # use mysql;
 
    **3.2** Seed it with the provided data with **seed_db.sql**
 
+**Note:** You can use a separate database to run tests. Simply set the appropriate variables on the .env file, and change NODE*ENV to 'test'. Check out \_database/dbConnection.ts*
+
+```bash
+const connection = process.env.NODE_ENV === 'test' ? testConnection : prodConnection;
+```
+
 ---
 
-#### API Setup
+### API Setup
 
 On the project:
 

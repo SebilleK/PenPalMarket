@@ -10,6 +10,8 @@ const testConnection = mysql.createPool({
 	database: process.env.TEST_DB_NAME,
 });
 
-console.log('mySQL test connection pool created.');
+if (process.env.NODE_ENV == 'test') {
+	console.log('MySQL test connection pool created. This connection will be used.');
+}
 
 export default testConnection;

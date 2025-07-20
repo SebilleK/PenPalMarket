@@ -11,12 +11,14 @@ const prodConnection = mysql.createConnection({
 	database: process.env.DB_NAME,
 });
 
-prodConnection.connect(err => {
-	if (err) {
-		console.error('Error Connecting to Database: ' + err.stack);
-		return;
-	}
-	console.log('Connected to the MySQL penpal database successfully.');
-});
+if (process.env.NODE_ENV != 'test') {
+	prodConnection.connect(err => {
+		if (err) {
+			console.error('Error Connecting to Database: ' + err.stack);
+			return;
+		}
+		console.log('Connected to the main MySQL penpal database successfully.');
+	});
+}
 
 export default prodConnection;
