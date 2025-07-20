@@ -26,16 +26,66 @@ describe('Shopping Cart and Orders', () => {
 		const setJWT = parsedJSON.accessToken;
 
 		const id = 1;
-		//product_id of the item // CHANGE BODY??AOIDHA
+		// use user_id to create a cart for user
 		const responsePOST = await server.inject({ method: 'POST', path: `/cart/${id}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
 
 		assert.deepStrictEqual(responsePOST.statusCode, 201);
 	});
 
+	it('can get a cart by cart_id', async () => {
+		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
+		// AUTH COOKIE / JWT
+		const parsedJSON = JSON.parse(response.body);
+		const setJWT = parsedJSON.accessToken;
+
+		const id = 1;
+		// use user_id to create a cart for user
+		const responsePOST = await server.inject({ method: 'POST', path: `/cart/${id}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
+
+		assert.deepStrictEqual(responsePOST.statusCode, 201);
+
+		//? getting cart_id from created cart
+		const parsedPostJSON = JSON.parse(responsePOST.body);
+		const createdCartId = parsedPostJSON.cart_id;
+
+		const responseGET = await server.inject({ method: 'GET', path: `/cart/${id}/${createdCartId}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
+		assert.deepStrictEqual(responseGET.statusCode, 200);
+	});
+
+	it('can get carts by user_id', async () => {
+		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
+		// AUTH COOKIE / JWT
+		const parsedJSON = JSON.parse(response.body);
+		const setJWT = parsedJSON.accessToken;
+
+		const id = 1;
+		// use user_id to create a cart for user
+		const responsePOST = await server.inject({ method: 'POST', path: `/cart/${id}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
+		assert.deepStrictEqual(responsePOST.statusCode, 201);
+
+		const responseGET = await server.inject({ method: 'GET', path: `/cart/${id}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
+		assert.deepStrictEqual(responseGET.statusCode, 200);
+	});
+
 	// TBA
 	it('can delete a cart', async () => {
-		const response = 'fail';
-		assert.deepStrictEqual(response, 'notfail');
+		const response = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
+		// AUTH COOKIE / JWT
+		const parsedJSON = JSON.parse(response.body);
+		const setJWT = parsedJSON.accessToken;
+
+		const id = 1;
+
+		const responsePOST = await server.inject({ method: 'POST', path: `/cart/${id}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
+		assert.deepStrictEqual(responsePOST.statusCode, 201);
+
+		//? getting cart_id from created cart
+		const parsedPostJSON = JSON.parse(responsePOST.body);
+		const createdCartId = parsedPostJSON.cart_id;
+
+		//! provide cart_id, not user_id to delete cart (also provide user id for auth purposes though)
+		const responseDELETE = await server.inject({ method: 'DELETE', path: `/cart/${id}/${createdCartId}`, headers: { cookie: `access_token=${setJWT.toString()}` } });
+		assert.deepStrictEqual(responseDELETE.statusCode, 204);
 	});
 
 	it('can add item to a cart', async () => {
