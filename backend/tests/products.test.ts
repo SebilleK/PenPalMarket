@@ -76,11 +76,43 @@ describe('Product Routes', () => {
 
 	// CREATING, UPDATING, DELETING PRODUCTS
 	describe('Product C_UD Operations', () => {
-		// CREATE PRODUCT
-		it('creates a new product', async () => {
+		it('cant create a new product if not admin', async () => {
+			const responseLogin = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@user.com', password: 'TestPassword1#' } });
+			assert.deepStrictEqual(responseLogin.statusCode, 200);
+
+			// AUTH COOKIE / JWT
+			const parsedJSON = JSON.parse(responseLogin.body);
+			const setJWT = parsedJSON.accessToken;
+
 			const response = await server.inject({
 				method: 'POST',
 				path: '/products',
+				headers: { cookie: `access_token=${setJWT}` },
+				payload: {
+					name: 'Pen 3000',
+					description: 'A new, special edition pen',
+					price: 199.99,
+					category: 'Premium',
+					stock: 20,
+				},
+			});
+
+			assert.deepStrictEqual(response.statusCode, 403);
+		});
+
+		// CREATE PRODUCT
+		it('creates a new product', async () => {
+			const responseLogin = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@admin.com', password: 'TestPassword2#' } });
+			assert.deepStrictEqual(responseLogin.statusCode, 200);
+
+			// AUTH COOKIE / JWT
+			const parsedJSON = JSON.parse(responseLogin.body);
+			const setJWT = parsedJSON.accessToken;
+
+			const response = await server.inject({
+				method: 'POST',
+				path: '/products',
+				headers: { cookie: `access_token=${setJWT}` },
 				payload: {
 					name: 'Pen 3000',
 					description: 'A new, special edition pen',
@@ -95,9 +127,17 @@ describe('Product Routes', () => {
 
 		// UPDATE PRODUCT
 		it('updates a product', async () => {
+			const responseLogin = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@admin.com', password: 'TestPassword2#' } });
+			assert.deepStrictEqual(responseLogin.statusCode, 200);
+
+			// AUTH COOKIE / JWT
+			const parsedJSON = JSON.parse(responseLogin.body);
+			const setJWT = parsedJSON.accessToken;
+
 			const response = await server.inject({
 				method: 'PUT',
 				path: `/products/1`,
+				headers: { cookie: `access_token=${setJWT}` },
 				payload: {
 					name: 'Simple Pen',
 					price: 5.99,
@@ -111,11 +151,18 @@ describe('Product Routes', () => {
 
 		// DELETE PRODUCT
 		it('deletes a product', async () => {
-			const response = await server.inject({ method: 'DELETE', path: `/products/1` });
+			const responseLogin = await server.inject({ method: 'POST', path: '/login', body: { email: 'test@admin.com', password: 'TestPassword2#' } });
+			assert.deepStrictEqual(responseLogin.statusCode, 200);
+
+			// AUTH COOKIE / JWT
+			const parsedJSON = JSON.parse(responseLogin.body);
+			const setJWT = parsedJSON.accessToken;
+
+			const response = await server.inject({ method: 'DELETE', headers: { cookie: `access_token=${setJWT}` }, path: `/products/1` });
 
 			assert.deepStrictEqual(response.statusCode, 204);
 
-			const testingDelete = await server.inject({ method: 'GET', path: `/products/21452341234` });
+			const testingDelete = await server.inject({ method: 'GET', headers: { cookie: `access_token=${setJWT}` }, path: `/products/21452341234` });
 
 			assert.deepStrictEqual(testingDelete.statusCode, 404);
 		});
